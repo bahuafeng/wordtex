@@ -66,10 +66,10 @@ endthm = "</em></blockquote>\n<p>\n"
 beginproof = "<em>Proof:</em> "
 endproof = "$latex \Box&fg=000000$\n\n"
 
-section = "\n<p>\n<b>_SecNumb_. _SecName_ </b>\n<p>\n"
-sectionstar = "\n<p>\n<b> _SecName_ </b>\n<p>\n"
-subsection = "\n<p>\n<b>  _SecNumb_._SubSecNumb_. _SecName_ </b>\n<p>\n"
-subsectionstar = "\n<p>\n<b> _SecName_ </b>\n<p>\n"
+section = "\n<p>\n<h1><b>_SecNumb_. _SecName_ </b></h1>\n<p>\n"
+sectionstar = "\n<p>\n<h1><b> _SecName_ </b></h1>\n<p>\n"
+subsection = "\n<p>\n<h2><b>  _SecNumb_._SubSecNumb_. _SecName_ </b></h2>\n<p>\n"
+subsectionstar = "\n<p>\n<h2><b> _SecName_ </b></h2>\n<p>\n"
 
 # Font styles. Feel free to add others. The key *must* contain
 # an open curly bracket. The value is the namem of a HTML tag.
