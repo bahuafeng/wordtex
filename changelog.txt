@@ -1,3 +1,8 @@
+
+Version 0.6.3, Oct 1, 2013
+  - Modified by Garrett Berg cloudformdesign.com
+  - Headings changed in 
+
 Version 0.6.2, May 6, 2009
   - Additional support for accented characters
   - Convert '>' and '<' to HTML codes

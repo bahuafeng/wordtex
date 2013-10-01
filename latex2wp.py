@@ -1,28 +1,4 @@
-"""
- Copyright 2009 Luca Trevisan
-
- Additional contributors: Radu Grigore
-
- LaTeX2WP version 0.6.2
-
- This file is part of LaTeX2WP, a program that converts
- a LaTeX document into a format that is ready to be
- copied and pasted into WordPress.
-
- You are free to redistribute and/or modify LaTeX2WP under the
- terms of the GNU General Public License (GPL), version 3
- or (at your option) any later version.
-
- I hope you will find LaTeX2WP useful, but be advised that
- it comes WITHOUT ANY WARRANTY; without even the implied warranty
- of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GPL for more details.
-
- You should have received a copy of the GNU General Public
- License along with LaTeX2WP.  If you can't find it,
- see <http://www.gnu.org/licenses/>.
-"""
-
+#! /usr/bin/python2
 
 import re
 from sys import argv
@@ -597,116 +573,107 @@ def convertref(m) :
         w=w+T[i+1]
     return w
 
-"""
-The program makes several passes through the input.
+if __name__ == '__main__':
+    """
+    The program makes several passes through the input.
 
-In a first clean-up, all text before \begin{document}
-and after \end{document}, if present, is removed,
-all double-returns are converted
-to <p>, and all remaining returns are converted to
-spaces.
+    In a first clean-up, all text before \begin{document}
+    and after \end{document}, if present, is removed,
+    all double-returns are converted
+    to <p>, and all remaining returns are converted to
+    spaces.
 
-The second step implements a few simple macros. The user can
-add support for more macros if desired by editing the
-convertmacros() procedure.
+    The second step implements a few simple macros. The user can
+    add support for more macros if desired by editing the
+    convertmacros() procedure.
 
-Then the program separates the mathematical
-from the text parts. (It assumes that the document does
-not start with a mathematical expression.) 
+    Then the program separates the mathematical
+    from the text parts. (It assumes that the document does
+    not start with a mathematical expression.) 
 
-It makes one pass through the text part, translating
-environments such as theorem, lemma, proof, enumerate, itemize,
-\em, and \bf. Along the way, it keeps counters for the current
-section and subsection and for the current numbered theorem-like
-environment, as well as a  flag that tells whether one is
-inside a theorem-like environment or not. Every time a \label{xx}
-command is encountered, we give ref[xx] the value of the section
-in which the command appears, or the number of the theorem-like
-environment in which it appears (if applicable). Each appearence
-of \label is replace by an html "name" tag, so that later we can
-replace \ref commands by clickable html links.
+    It makes one pass through the text part, translating
+    environments such as theorem, lemma, proof, enumerate, itemize,
+    \em, and \bf. Along the way, it keeps counters for the current
+    section and subsection and for the current numbered theorem-like
+    environment, as well as a  flag that tells whether one is
+    inside a theorem-like environment or not. Every time a \label{xx}
+    command is encountered, we give ref[xx] the value of the section
+    in which the command appears, or the number of the theorem-like
+    environment in which it appears (if applicable). Each appearence
+    of \label is replace by an html "name" tag, so that later we can
+    replace \ref commands by clickable html links.
 
-The next step is to make a pass through the mathematical environments.
-Displayed equations are numbered and centered, and when a \label{xx}
-command is encountered we give ref[xx] the number of the current
-equation. 
+    The next step is to make a pass through the mathematical environments.
+    Displayed equations are numbered and centered, and when a \label{xx}
+    command is encountered we give ref[xx] the number of the current
+    equation. 
 
-A final pass replaces \ref{xx} commands by the number in ref[xx],
-and a clickable link to the referenced location.
-"""
+    A final pass replaces \ref{xx} commands by the number in ref[xx],
+    and a clickable link to the referenced location.
+    """
+    import pdb
+    pdb.set_trace()
+    inputfile = "wpress.tex"
+    outputfile = "wpress.html"
+    if len(argv) > 1 :
+        inputfile = argv[1]
+        if len(argv) > 2:
+            outputfile = argv[2]
+        else:
+            outputfile = inputfile.replace(".tex",".html")
+    f=open(inputfile)
+    s=f.read()
+    f.close()
 
+    """
+      extractbody() takes the text between a \begin{document}
+      and \end{document}, if present, (otherwise it keeps the
+      whole document), normalizes the spacing, and removes comments
+    """
+    s=extractbody(s)
 
-inputfile = "wpress.tex"
-outputfile = "wpress.html"
-if len(argv) > 1 :
-    inputfile = argv[1]
-    if len(argv) > 2 :
-        outputfile = argv[2]
-    else :
-        outputfile = inputfile.replace(".tex",".html")
-f=open(inputfile)
-s=f.read()
-f.close()
+    # formats tables
+    s=converttables(s)
 
+    # reformats optional parameters passed in square brackets
+    s=convertsqb(s)
 
-"""
-  extractbody() takes the text between a \begin{document}
-  and \end{document}, if present, (otherwise it keeps the
-  whole document), normalizes the spacing, and removes comments
-"""
-s=extractbody(s)
+    #implement simple macros
+    s=convertmacros(s)
 
-# formats tables
-s=converttables(s)
+    # extracts the math parts, and replaces the with placeholders
+    # processes math and text separately, then puts the processed
+    # math equations in place of the placeholders
+    (math,text) = separatemath(s) 
 
-# reformats optional parameters passed in square brackets
-s=convertsqb(s)
+    s=text[0]
+    for i in range(len(math)) :
+        s=s+"__math"+str(i)+"__"+text[i+1]
+        
+    s = processtext( s )
+    math = processmath ( math )
 
+    # converts escape sequences such as \$ to HTML codes
+    # This must be done after formatting the tables or the '&' in
+    # the HTML codes will create problems
+    for e in esc :
+        s=s.replace(e[1],e[2])
+        for i in range ( len ( math ) ) :
+            math[i] = math[i].replace(e[1],e[3])
 
-#implement simple macros
-s=convertmacros(s)
+    # puts the math equations back into the text
+    for i in range(len(math)) :
+        s=s.replace("__math"+str(i)+"__",math[i])
 
+    # translating the \ref{} commands
+    s=convertref(s)
 
-# extracts the math parts, and replaces the with placeholders
-# processes math and text separately, then puts the processed
-# math equations in place of the placeholders
+    if HTML:
+        s=("<head><style>body{max-width:55em;}a:link{color:#4444aa;}a:visited{color:#4444aa;}a:hover{background-color:#aaaaFF;}</style>"
+        "</head><body>"+s+"</body></html>")
 
-(math,text) = separatemath(s) 
+    s = s.replace("<p>","\n<p>\n")
 
-
-s=text[0]
-for i in range(len(math)) :
-    s=s+"__math"+str(i)+"__"+text[i+1]
-    
-s = processtext ( s )
-math = processmath ( math )
-
-# converts escape sequences such as \$ to HTML codes
-# This must be done after formatting the tables or the '&' in
-# the HTML codes will create problems
-
-for e in esc :
-    s=s.replace(e[1],e[2])
-    for i in range ( len ( math ) ) :
-        math[i] = math[i].replace(e[1],e[3])
-
-# puts the math equations back into the text
-
-
-for i in range(len(math)) :
-    s=s.replace("__math"+str(i)+"__",math[i])
-
-# translating the \ref{} commands
-s=convertref(s)
-
-
-
-if HTML :
-    s="<head><style>body{max-width:55em;}a:link{color:#4444aa;}a:visited{color:#4444aa;}a:hover{background-color:#aaaaFF;}</style></head><body>"+s+"</body></html>"
-
-s = s.replace("<p>","\n<p>\n")
-
-
-f=open(outputfile,"w")
-f.write(s)
-f.close()
+    f=open(outputfile,"w")
+    f.write(s)
+    f.close()
