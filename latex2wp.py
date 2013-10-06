@@ -11,7 +11,18 @@ New Branch:
     
     
 #TODO:
-- Indenting is accomplished via <ul> </ul>
+- Indenting is accomplished via
+<ul>
+	<li>one</li>
+	<li>two</li>
+	<li>three
+<ul>    # nested
+	<li>three 1</li>
+	<li>three 2</li>
+</ul>
+</li>
+</ul>
+
 - Indexing in lists:
 this:
 \begin{itemize}
