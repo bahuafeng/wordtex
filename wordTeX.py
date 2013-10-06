@@ -4,17 +4,18 @@ Created on Sat Oct  5 23:38:09 2013
 
 @author: user
 """
-from cloudtb import dbe
+from cloudtb import dbe, system
 
 import sys, os
 
-import library
-import formating
+import texlib
+import formatting
 
-         
-if __name__ == '__main__':
+
+def main():
     import pdb
-    inputfile = "/home/user/Documents/Website/Blog/Python Memory Management Helpers.tex"
+    argv = sys.argv
+    inputfile = "tex_docs/simple.tex"
     if len(argv) > 1:
         inputfile = argv[1]
     else:
@@ -23,12 +24,16 @@ if __name__ == '__main__':
     if len(argv) > 2:
         outputfile = argv[2]
     else:
-        if is_file_ext(inputfile, 'tex'):
+        if system.is_file_ext(inputfile, 'tex'):
             outputfile = inputfile[:-4] + ".wp.html"
         else:
             outputfile = inputfile + ".wp.html"
 
-    document = library.process_document(inputfile)
+    document = texlib.process_document(inputfile)
+    texlib.print_tex_tree(document)
+    
+if __name__ == '__main__':
+    main()
     
     
     
