@@ -156,8 +156,8 @@ final_subs = [
 
 fsubs_reg = ['(' + textools.convert_to_regexp(n[0]) + ')'
                for n in final_subs]
-final_subs = dict([(fsubs_reg[i], final_subs[i][1]) 
-                for i in range(len(fsubs_reg))])
+final_subs_re = [(fsubs_reg[i], final_subs[i][1]) 
+                for i in range(len(fsubs_reg))]
 del fsubs_reg
 
 ##### SUMMARY

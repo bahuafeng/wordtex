@@ -300,28 +300,50 @@ class TexPart(object):
             - makes sure all spaces are only single spaces
         '''
         fmat = formatting
-        one_space = re.compile('( {2,})')
-        paragraphs = re.compile('(\n{2,})')
-
-        final_subs_re = re.compile('|'.join(final_subs_str))
-        replace_dict = d
-        subfun = textools.subfun(replace_dict = fmat.final_subs)
+        one_space = (' {2,}', ' ')
+        paragraphs = ('\n{2,}', ''.join(fmat.PARAGRAPH))
+        all_subs = []
+        if not self.no_final_subs:
+            all_subs += fmat.final_subs
+        if not self.no_paragraphs:
+            all_subs += [paragraphs]
+        all_subs += [one_space]
         
-        subs_dict = fmat.concatenate_dicts(fmat.final_subs,
-                    )
-        # Strip all dangling new-lines and spaces.
+        # format all subs to be in groups
+        all_subs = [('('+n[0]+')', n[1]) for n in all_subs]
+        # pull out the string format for or conversion
+        all_subs_str = (n[0] for n in all_subs)
+        # convert to or for sub matching
+        all_subs_or_re =  re.compile('|'.join(all_subs_str))
+        del all_subs_str
+        
+        # pre-compile for use with subfun
+        all_subs_re = [re.compile(n[0]) for n in all_subs]
+        
+        # put back together in a replacement list [[re, replacement], ...]
+        all_subs_re_replace = [(all_subs_re[i], all_subs[i][1]) 
+                for i in range(len(all_subs))]
+        
+        # create the subfunction for replacement
+        subfun = textools.subfun(replace_list = all_subs_re_replace)
+        
         for i, tp in enumerate(self.text_data):
             if tp != type(str):
                 continue
+            # strip all dangling new-lines and spaces
             tp = tp.strip()
-            if not self.no_paragraphs:
-                tp = paragraphs.sub(''.join(fmat.PARAGRAPH), tp)
-            if not self.no_outer_pgraphs:
-                tp = ''.join([fmat.PARAGRAPH[0], 
-                              tp,
-                              fmat.PARAGRAPH[1]])
-            if not self.no_final_subs:
-                tp = final_subs_re.sub(subfun, tp)
+            tp = all_subs_or_re.sub(subfun, tp)
+            
+            self.text_data[i] = tp
+#            
+#            if not self.no_paragraphs:
+#                tp = paragraphs.sub(''.join(fmat.PARAGRAPH), tp)
+#            if not self.no_outer_pgraphs:
+#                tp = ''.join([fmat.PARAGRAPH[0], 
+#                              tp,
+#                              fmat.PARAGRAPH[1]])
+#            if not self.no_final_subs:
+#                tp = final_subs_re.sub(subfun, tp)
                 
         
         
