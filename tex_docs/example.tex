@@ -1,0 +1,165 @@
+%% LyX 2.0.2 created this file.  For more info, see http://www.lyx.org/.
+%% Do not edit unless you really know what you are doing.
+\documentclass[english]{article}
+\usepackage[T1]{fontenc}
+\usepackage[latin9]{inputenc}
+\usepackage{listings}
+\setlength{\parskip}{\smallskipamount}
+\setlength{\parindent}{0pt}
+\usepackage{babel}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage[unicode=true]
+ {hyperref}
+\usepackage{breakurl}
+
+\makeatletter
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% LyX specific LaTeX commands.
+%% Because html converters don't know tabularnewline
+\providecommand{\tabularnewline}{\\}
+
+\makeatother
+
+\begin{document}
+
+
+
+\section*{The Cloud Toolbox}
+
+I recently released the code for my \href{https://github.com/cloudformdesign/cloudtb}{cloudtb}.
+The definition I have of a toolbox is this: functions that should
+be included in the python standard library, but aren't. This is a
+general library which I intend to use across all my projects in the
+future. This library is released as FULLY open source (MIT License).
+I think I will make most of the modules fully community commons soon
+so that anyone can feel free to edit or change them (and steal from
+them) if they wish.
+
+I am currently messing around with Git, but what I want is to give
+anyone the ability to create their own personal branch. \textbf{I
+want you to use this toolbox as YOUR toolbox}. In addition, if you
+already have a ``toolbox,'' then feel free to just create a branch
+and copy - paste the functions you find valuable into it.
+
+One of the major features of this toolbox that I am implementing is
+the requirement that everything be fully documented in \LaTeX{}. This
+is a simple document formating tool that can be exported to html,
+pdf, and even wordpress! This blog post is written in \LaTeX{} using
+the Lyx text editor. I will soon release the code that I used to create
+this blog post as well.
+
+
+\section*{Memory Management}
+
+
+\subsection*{Iterators}
+
+The best method of memory management already has tons of internal
+support in python: iterators. However, the libraries provided in the
+standard library fall a little short in a couple of areas, primarily
+\textit{adding iterators}~and doing \textit{look-aheads. }To address
+these problems I developed two classes, the \textbf{biter} class and
+the \textbf{soliditer }class. These classes can be found in \href{https://github.com/cloudformdesign/cloudtb/commit/405f5b903a5270249cdb5e52f1454b9bdce8416a}{the iterators class}.
+These two classes extend iteration to these nearly essential capabilities.
+I hope to write soliditer in c so that it's speed limitations can
+be solved.
+
+
+\subsection*{Auto-Swap (Harddrive) Data}
+
+As far as I know, this is a new idea (and certainly hasn't been implemented).
+The idea is simple: if you don't use a variable very often it should
+be stored in the harddrive. My first few attempts have run into a
+few current problems with implementing the basic wrapper class (as
+can be seen in \href{http://stackoverflow.com/questions/19202997/python-general-wrapper-class-for-any-data}{this stackoverflow question}),
+but I have hope that this can eventually become a reality.
+
+Auto-swap data could significantly help with memory management, particularily
+for large, persistent applications like GUI's. The basic implementation
+is as follows:
+
+\begin{lstlisting}
+# want to extend my iterator 
+myiter = biter(myiter) 
+bi2 = biter(range(100)) # use xrange in python2 
+myiter = myiter + bi2 # ... other stuff
+# now I only want every 5th element 
+myiter = myiter[::5]
+# ... other stuff 
+
+# Now I just want the 20th element (note: removes elements before.         
+# if you want to keep these elements use soliditer) 
+el20 = myiter[20]
+\end{lstlisting}
+
+
+
+\section*{Inserting a Table}
+
+\begin{tabular}{|c|c}
+\hline 
+This is a table & It modifies itself automatically\tabularnewline
+\hline 
+\hline 
+No, it did not. Interesting but not all that important I guess... & col 1, row 0\tabularnewline
+\hline 
+0,1 & col1, r1\tabularnewline
+\hline 
+0,2 & \multirow{1}{*}{1,2}\tabularnewline
+\hline 
+0,3 \& that was an and & 1,3\tabularnewline
+\hline 
+\end{tabular}
+
+I'm going to do some special characters now
+
+From 1-0
+
+!@\#\$\%\textasciicircum{}\&{*}()
+
+\begin{tabular}{|c|c|}
+\hline 
+exc & !\tabularnewline
+\hline 
+\hline 
+at & @\tabularnewline
+\hline 
+pound & \#\tabularnewline
+\hline 
+money & \$\tabularnewline
+\hline 
+perc & \%\tabularnewline
+\hline 
+carrot & \textasciicircum{}\tabularnewline
+\hline 
+and & \&\tabularnewline
+\hline 
+star & {*}\tabularnewline
+\hline 
+parans & ()\tabularnewline
+\hline 
+brackets & {[}{]}\tabularnewline
+\hline 
+curly & \{\}\tabularnewline
+\hline 
+backslash & \textbackslash{}\tabularnewline
+\hline 
+fslash & /\tabularnewline
+\hline 
+question & ?\tabularnewline
+\hline 
+quote 1 & '\tabularnewline
+\hline 
+quote 2 & ``\tabularnewline
+\hline 
+tilde & \textasciitilde{}\tabularnewline
+\hline 
+ & \tabularnewline
+\hline 
+ & \tabularnewline
+\hline 
+ & \tabularnewline
+\hline 
+\end{tabular}
+\end{document}
