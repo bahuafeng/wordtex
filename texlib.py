@@ -166,13 +166,12 @@ def convert_inout(inout, texpart_constructor, return_first = False):
         assert(start[0] == 2 and end[0] == 3)
         body = reform_text(body, is_in = True)
         tp = copy.copy( texpart_constructor)
-        tp.update_text((start[1], body, end[1]))
+        tp.init_text((start[1], body, end[1]))
         print 'Converting', start
         return tp
     
     def get_processed(was_in, processing):
         if was_in > 0:  # object
-#            pdb.set_trace()
             converted = convert_processed(processing[0],
                     processing[1:-1], processing[-1])
             return [converted]
@@ -220,7 +219,7 @@ class TexPart(object):
                  no_update_text = None, format_call = None,
                  call_first = None, call_last = None,
                  no_std_format = None, no_final_subs = None,
-                 paragraph_outside = False):
+                 no_paragraphs = False, no_outer_pgraphs = None):
         '''
         add_outside = this is the outside characters that will be added
             during the format call (front, back)
@@ -233,7 +232,8 @@ class TexPart(object):
             still be called on internal data.
         no_final_subs - final substitutions (i.e. \$ -> $) won't be made.
             will still be called on internal data
-        paragraph_outside = put paragraph lines on the outside of this object
+        no_paragraphs - override std format and don't use paragraphs. Useful
+            for things like lists.
         '''
         self.label = label      # convinience, mostly for debugging
         self.add_outside = add_outside
@@ -243,10 +243,10 @@ class TexPart(object):
         self.call_first = call_first
         self.call_last = call_last
         self.no_final_subs = no_final_subs
-        self.paragraph_outside = paragraph_outside
+        self.no_paragraphs = no_paragraphs
+        self.no_outer_pgraphs = no_outer_pgrahs
         
         self.match_re = None
-        self.text_block = None
         self.is_done = False
     
     def update_match_re(self, match_re):
@@ -254,34 +254,78 @@ class TexPart(object):
         self.cmp_inside, self.cmp_starters, self.cmp_end = (
             [[re.compile(n) for n in c] for c in self.match_re])
         
-    def update_text(self, text_block):
+    def add_text(self, text_block):
         '''
         This function does most of the work of converting the document into
         objects.
             Each call calls all regular expression blocks of the dictionaries
             in formatting and converts them to the respected TexPart object
         '''
-        start, text_data, end = text_block
-        self.start, self.end = start, end   # mostly used for debugging
+        self.start, self.text_data, self.end = text_block
+
+        if self.call_first: self.call_first(self)
         
+        if not self.no_update_text:
+            self.init_text(self.text_data)
+        
+        if not self.no_std_format:
+            self.std_format()
+        
+        if self.call_last: self.call_last(self)
+        self.text_data = text_data
+    
+    def init_text(self, text_data):
         every_dict = formatting.every_dict_formatting
         for key, texpart in every_dict.iteritems():
             inout = get_objects_inout(text_data, *texpart.match_re)
             text_data = convert_inout(inout, texpart)
-    
         self.text_data = text_data
-        
+                
     def insert_tex(self, index, data):
         return self.text_data.insert(index, data)
     
     def append_tex(self, data):
         return self.text_data.append(data)
-        
-    def format(self):
-        if self.is_done:
-            return
-        self.call_first(self)
+    
+    def get_wp_text(self):
         pass
+        
+    def std_format(self):
+        ''' performs standard formating.
+        Currently:
+            - converts double line spaces to paragraph boundaries.
+                - Note: if std_format is set then paragraph boundaries
+                    are automatically added to the outside of the item.
+                    To disable all paragraph boundaries, use 
+            - makes sure all spaces are only single spaces
+        '''
+        fmat = formatting
+        one_space = re.compile('( {2,})')
+        paragraphs = re.compile('(\n{2,})')
+
+        final_subs_re = re.compile('|'.join(final_subs_str))
+        replace_dict = d
+        subfun = textools.subfun(replace_dict = fmat.final_subs)
+        
+        subs_dict = fmat.concatenate_dicts(fmat.final_subs,
+                    )
+        # Strip all dangling new-lines and spaces.
+        for i, tp in enumerate(self.text_data):
+            if tp != type(str):
+                continue
+            tp = tp.strip()
+            if not self.no_paragraphs:
+                tp = paragraphs.sub(''.join(fmat.PARAGRAPH), tp)
+            if not self.no_outer_pgraphs:
+                tp = ''.join([fmat.PARAGRAPH[0], 
+                              tp,
+                              fmat.PARAGRAPH[1]])
+            if not self.no_final_subs:
+                tp = final_subs_re.sub(subfun, tp)
+                
+        
+        
+        
 
 import formatting
 

@@ -4,15 +4,17 @@ Created on Sun Oct  6 04:41:47 2013
 
 @author: user
 """
+range = xrange
 
 import texlib
-from cloudtb import textools as tt
+from cloudtb import textools
 import copy
 
 # keeps track of section number in document
 SECTION_NUMBER = 0
 SUBSECTION_NUMBER = 0
 
+PARAGRAPH = ('<p>', '</p>')
 ###############################
 ### Call functions for formatting
 def delete_self(texpart, *args, **kwargs):
@@ -69,14 +71,19 @@ def build_dict(name, patterns,
     return mydict
     
 # Create a dict of begin objects
+    
+
 
 begin_objects = [
 ['document'     ,tp()                                                  ],
-['tabular'      ,tp(add_outside = ('TABLE_START','TABLE_END')         )], #TODO: Placeholder
+['tabular'      ,tp(add_outside = ('TABLE_START','TABLE_END'),
+                    no_outer_pgraphs = True)], #TODO: Placeholder
 ['lstlisting'   ,tp(add_outside = ('<pre>','<\pre>'),
                     no_update_text = True, no_std_format = True)],
-['itemize'      ,tp(add_outside = ('<ul>\n', '</ul>\n')               )],
-['enumerate'    ,tp(add_outside = ('<ul>\n','</ul>\n')                )], #TODO: Placeholder
+['itemize'      ,tp(add_outside = ('<ul>', '</ul>'),
+                    no_outer_pgraphs = True)],
+['enumerate'    ,tp(add_outside = ('<ul>','</ul>'),
+                    no_outer_pgraphs = True)], #TODO: Placeholder
 ['equation'     ,tp(add_outside = ('','' )                            )], #TODO: need basic equation
 ]
 
@@ -86,9 +93,11 @@ begin_dict = build_dict('begin', begin_objects, r'(\n?\\begin\{{{0}}} *?\n?)', N
 # Create a dict for ifs
 
 if_objects = [
-['blog'      , tp()],
-['tex'       , tp(call_first = delete_self)],
-['false'     , tp(call_first = delete_self)]
+['blog'      , tp(no_outer_pgraphs = True)],
+['tex'       , tp(call_first = delete_self,
+                  no_outer_pgraphs = True)],
+['false'     , tp(call_first = delete_self,
+                  no_outer_pgraphs = True)]
 ]
 
 if_dict = build_dict('if', if_objects, r'(\\if{0} )', 
@@ -97,24 +106,29 @@ if_dict = build_dict('if', if_objects, r'(\\if{0} )',
 
 
 txt_attributes = [
-['textbf'   ,tp(add_outside = ('<strong>', '</strong>')   )],# bolded
-['textit'   ,tp(add_outside = ('<em>', '</em>')           )],# italicized
+['textbf'   ,tp(add_outside = ('<strong>', '</strong>'),
+                no_outer_pgraphs = True)],# bolded
+['textit'   ,tp(add_outside = ('<em>', '</em>'),
+                no_outer_pgraphs = True)],# italicized
 ['uline'    ,tp(add_outside = ('''<span style="text-decoration: underline;">''', 
-                              '</span>')                 )],# underlined
+                '</span>'), 
+                no_outer_pgraphs = True )],# underlined
 ['section'      ,tp(add_outside = ('<h1><b>','</b></h1>'),
-    call_first = [section_num]                                              )],
-['section\*'    ,tp(add_outside = ('<h1><b>','</b></h1>'),              )],
+    call_first = [section_num])],
+['section\*'    ,tp(add_outside = ('<h1><b>','</b></h1>'),)],
 ['subsection'   ,tp(add_outside = ('<h2><b>','</b></h2>'),
-    call_first = [subsection_num]                                           )], 
-['subsection\*' ,tp(add_outside = ('<h2><b>','</b></h2>')               )], 
+    call_first = [subsection_num])], 
+['subsection\*' ,tp(add_outside = ('<h2><b>','</b></h2>'))], 
 ]
 txt_attr_dict = build_dict('txt_attr', txt_attributes, 
                            r'(\\{0}\{{)', None, r'(\}})')
 
 
 line_items = [
-['item'         ,tp(add_outside = ('<li>','<\li>')                      )], # used in itemize and enumerate
-['hline'        ,tp(add_outside = ('','')                               )], #TODO: used in tabular
+['item'         ,tp(add_outside = ('<li>','<\li>'), 
+                    no_outer_pgraphs = True)], # used in itemize and enumerate
+['hline'        ,tp(add_outside = ('',''),
+                    no_outer_pgraphs = True)], #TODO: used in tabular
 #[''     ,t(add_outside = '',''                      )],
 ]
 line_dict = build_dict('line', line_items, r'\\{0} ', None, r'\n')
@@ -122,6 +136,8 @@ line_dict = build_dict('line', line_items, r'\\{0} ', None, r'\n')
 ###########################
 ## Create some final formatting substitutions
 ## Math can handle itself (need to create a new module)
+
+
 final_subs = [
     [r'\#'      ,'#'],
     [r'\$'      ,"$"],
@@ -137,6 +153,12 @@ final_subs = [
     [r'\textasciitilde{}'   ,r'~'],
 #    [r''    ,r''],
 ]
+
+fsubs_reg = ['(' + textools.convert_to_regexp(n[0]) + ')'
+               for n in final_subs]
+final_subs = dict([(fsubs_reg[i], final_subs[i][1]) 
+                for i in range(len(fsubs_reg))])
+del fsubs_reg
 
 ##### SUMMARY
 # So, the objects we have are:
@@ -180,9 +202,6 @@ code_format = get_dict_items(begin_dict, 'lstlisting')
 
 sections_format = get_dict_items(line_dict, 'section, section\*, subsection,'
                                       ' subsection\*')
-
-def format(textpart):
-    pass
     
     
         
