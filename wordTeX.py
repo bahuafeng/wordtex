@@ -37,36 +37,39 @@ Macros = {"\\to":"\\rightarrow",
           "\\S":"&sect;"
          }
 
+def format_paragraph(text_data):
+    pass
+
+def format_font(text_data):
+    pass
+
+def format_outside(text_data, sub_outside):
+    pass
 
 #TODO: Need begins for colors and tables
-
-# These are in the format (function_call, start_str, end_str)
-
-class tex_part(object):
+class TexPart(object):
     r'''this class is a text object, normally preceeded by either a begin
     statement or a single line (i.e. \header) and ended by an end statement
     or a \n
     '''
-    def __init__(self, start, text_block, end):
-        '''Should be used with get_objects_inout. start has value == 2,
-        the text block is all values inbetween == 1 and end has value == 3
+    def __init__(self, text_block, sub_outside = None, paragraph_outside = False):
         '''
-        self.start = start
-        self.text_block = text_block
-        self.end = end
-
-#from functools import update_wrapper
-#def dec_interpret_matches(function):
-#    def decorated_function(matches, call, *args):
-#        if type(matches) == str:
-#            inside_list = [r'\begin\{{0}}'.format(matches)]
-#            outside_list = []
-#            end_list = [r'\end\{{0}}'.format(matches)]
-#        else:
-#            inside_list, outside_list, end_list = matches
-#        return function(matches, *args)
-#    update_wrapper(decorated_function, function)
-#    return decorated_function
+        text_block = start, text_data, end
+            Should be used with get_objects_inout. start has value == 2,
+            the text_data is all values inbetween == 1 and end has value == 3
+        sub_outside = this is the outside characters that will be subbed
+            during the format call.
+        '''
+        self.start, self.text_data, self.end = text_block
+        self.no_format = no_format
+        self.is_done = False
+    
+    def format(self):
+        # do these last
+        format_paragraph(self.text_data)
+        format_font(self.text_data)
+        if self.sub_outside:
+            format_outside(text_data, self.sub_outside)
 
 def call_items(array, call):
     '''perform a functoin call on every item in an array'''
@@ -123,13 +126,15 @@ def split_text(matches, text):
     matches = re.compile('|'.join(matches))
     return matches, matches.split(text)
 
-def get_objects_inout(raw_text, inside_list, starters_list, end_list):
+def get_objects_inout(text_objects, inside_list, starters_list, end_list):
     '''given the matches, returns the text in order in tuples as the following
     (2, txt3),  # value was the first inside start of group    
     (True, txt1),
     (True, txt2),
+    (True, TxtPart),
     (3, txt4),  # text was the final end of group
     (False, txt2),
+    (False, TxtPart),
     etc...
     
     where True means that the text is inside your match parameters and False
@@ -147,10 +152,16 @@ def get_objects_inout(raw_text, inside_list, starters_list, end_list):
     re_in = textools.re_in
     
     # error checking on file
-    match_cmp = check_brackets(inside_list + starters_list, end_list, raw_text)[0]
+    match_cmp = check_brackets(text_objects, inside_list + starters_list, end_list)
     
     # split up text for compiling
-    splited = match_cmp.split(raw_text)
+    splited = []
+    for tobj in text_objects:
+        if type(tobj) == TexPart:
+            splited.append(tobj)
+        else:
+            splited.extend(match_cmp.split(text_objects))
+        
     inside = [re.compile(m) for m in inside_list]
     starter = [re.compile(m) for m in starters_list]
     end = [re.compile(m) for m in end_list]
@@ -164,7 +175,9 @@ def get_objects_inout(raw_text, inside_list, starters_list, end_list):
         assert(num_in >= 0)
         if txt in (None, ''):
             continue
-        if re_in(txt, inside):
+        if type(txt) == TexPart:
+            pass    # TexParts have been alrady processed.
+        elif re_in(txt, inside):
             if num_in == 0:
                 set_num = 2
             num_in += 1
@@ -176,6 +189,7 @@ def get_objects_inout(raw_text, inside_list, starters_list, end_list):
             num_in -= 1
             if num_in == 0:
                 set_num = 3
+        
         if set_num:
             ltext.append((set_num, txt))
             set_num = None
@@ -183,22 +197,33 @@ def get_objects_inout(raw_text, inside_list, starters_list, end_list):
             ltext.append((True, txt))
         else:
             ltext.append((False, txt))
+            
     return ltext
 
-def check_brackets(match_list, end_list, text):
-    '''Checks to make sure all brackets are completed (i.e. \iffalse or \(ifblog) or \iftex
+def check_brackets(text_objects, start_list, end_list):
+    '''
+    This works more simply than it looks.
+    text_objects = list of objects, either strings (not processed) or TexPart's
+    (processed and checked already). It skips the TexParts, keeping them
+    
+    Checks to make sure all brackets are completed (i.e. \iffalse or \(ifblog) or \iftex
     is completed by an \fi.
     Example input:
     found, gnumbers = check_brackets([r'(\\iffalse)', r'\\(ifblog)', r'\\(iftex)', r'\\(if.*) ', r'\\(fi)'],
-                                      text)
+                                      text_objects)
     note: only returns the first group number found!
     raises LaTeX_Error on failure
 
-    return match_compile, found, gnumbers
+    return match_compile
     '''
-    match_cmp = re.compile('|'.join(match_list + end_list))
-    found = match_cmp.findall(text)
-    gnumbers = [textools.group_num(n) for n in found]
+    match_cmp = re.compile('|'.join(start_list + end_list))
+    found = []
+    gnumbers = []
+    for tobj in text_objects:
+        if type(tobj) != TexPart:
+            found = match_cmp.findall(tobj)
+            gnumbers.extend([textools.group_num(n) for n in found])
+
     n = 0
     end_num = len(gnumbers) + 1
     for gn in gnumbers:
@@ -208,7 +233,7 @@ def check_brackets(match_list, end_list, text):
             n -= 1
     if n != 0:
         raise LaTeX_Error("Brackets not matched")
-    return match_cmp, found, gnumbers
+    return match_cmp
     
 class LatexWordpress(object):
     '''Reads a LaTeX text document and processes it.
