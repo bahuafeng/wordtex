@@ -34,6 +34,11 @@ def main():
     document = texlib.process_document(inputfile)
     
     texlib.print_tex_tree(document)
+    with open(outputfile, 'w') as f:
+        f.write(texlib.wordTeX())
+        
+    print 'File output: ', outputfile
+    
     
 if __name__ == '__main__':
     main()

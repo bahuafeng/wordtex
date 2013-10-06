@@ -28,19 +28,18 @@ def no_start_end(texpart, *args, **kwargs):
 def section_num(texpart, *args, **kwargs):
     global SECTION_NUMBER
     SECTION_NUMBER += 1
-    sect = texlib.TexPart('*section')
-    sect.update_text(('', 'Section {0}'.format(SECTION_NUMBER),
-                      ''))
-    texpart.insert_tex(0, sect)
+    texpart.text_data.insert(0, 'Section {0}: '.format(
+        SECTION_NUMBER))
+    texpart.text_data = texlib.reform_text(texpart.text_data, 
+                                           no_indicators= True)
 
 def subsection_num(texpart, *args, **kwargs):
     global SUBSECTION_NUMBER
     SUBSECTION_NUMBER += 1
-    sect = texlib.TexPart('*subsection', '')
-    sect.update_text(('', 'Section {0}.{1}'.format(
-        SECTION_NUMBER, SUBSECTION_NUMBER), 
-        ''))
-    texpart.insert_tex(0, sect)
+    texpart.text_data.insert(0, 'Section {0}.{1}: '.format(
+        SECTION_NUMBER, SUBSECTION_NUMBER))
+    texpart.text_data = texlib.reform_text(texpart.text_data, 
+                                           no_indicators= True)
 
 ########################
 ## Automatically creating dictionaries of regexp's
@@ -72,8 +71,6 @@ def build_dict(name, patterns,
     
 # Create a dict of begin objects
     
-
-
 begin_objects = [
 ['document'     ,tp()                                                  ],
 ['tabular'      ,tp(add_outside = ('TABLE_START','TABLE_END'),
@@ -84,11 +81,11 @@ begin_objects = [
                     no_outer_pgraphs = True)],
 ['enumerate'    ,tp(add_outside = ('<ul>','</ul>'),
                     no_outer_pgraphs = True)], #TODO: Placeholder
-['equation'     ,tp(add_outside = ('','' )                            )], #TODO: need basic equation
+['equation'     ,tp(add_outside = ('','' ) )], #TODO: need basic equation
 ]
 
-begin_dict = build_dict('begin', begin_objects, r'(\n?\\begin\{{{0}}} *?\n?)', None,
-                           r'(\n?\\end\{{{0}}} *?\n?)')
+begin_dict = build_dict('begin', begin_objects, r'(\\begin\{{{0}}} *?)', None,
+                           r'(\\end\{{{0}}} *?)')
 
 # Create a dict for ifs
 
@@ -154,11 +151,8 @@ final_subs = [
 #    [r''    ,r''],
 ]
 
-fsubs_reg = ['(' + textools.convert_to_regexp(n[0]) + ')'
+final_subs = [(textools.convert_to_regexp(n[0]), n[1])
                for n in final_subs]
-final_subs_re = [(fsubs_reg[i], final_subs[i][1]) 
-                for i in range(len(fsubs_reg))]
-del fsubs_reg
 
 ##### SUMMARY
 # So, the objects we have are:
@@ -202,7 +196,7 @@ code_format = get_dict_items(begin_dict, 'lstlisting')
 
 sections_format = get_dict_items(line_dict, 'section, section\*, subsection,'
                                       ' subsection\*')
-    
-    
+
+
         
     

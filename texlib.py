@@ -108,13 +108,25 @@ def get_objects_inout(text_objects, inside_list, starters_list,
     
     return ltext
 
-def reform_text(text_data, is_in = False):
+def reform_text(text_data, is_in = False, no_indicators = False):
     '''put all text objects that are next to eachother into a 
-    single string'''
+    single string
+    is_in = None ignores the values. No_indicators means they don't exist
+    (single dimension list)'''
     all_txt = []
     out = []
-    for n, txt in text_data:
-        if is_in == False:
+    if no_indicators:
+        is_in = None
+    
+    for item in text_data:
+        if no_indicators:
+            txt = item
+        else:
+            n, txt = item
+        
+        if is_in == None:
+            pass
+        elif is_in == False:
             assert(n == 0)  # something wasn't processed!
         else:
             assert(n > 0)
@@ -206,6 +218,7 @@ def convert_inout(inout, texpart_constructor, return_first = False):
         if was_in and return_first:
             return data[0]
     
+    assert(type(text) == list)
     return text
 
 
@@ -225,8 +238,8 @@ class TexPart(object):
             during the format call (front, back)
         no_update_text - update_text will not be called on this module once
             it is discovered (it cannot contain ANY internal TexPart objects)
-        call_first - call this function before any processing
-        call_last - call this function after all processing
+        call_first - call this list of functions before any processing
+        call_last - call this list of functions after all processing
         format_call - call this function instead of format
         no_std_format = std_format won't be called during format. Will
             still be called on internal data.
@@ -239,14 +252,13 @@ class TexPart(object):
         self.add_outside = add_outside
         self.no_update_text = no_update_text
         self.no_std_format = no_std_format
-        self.format_call = format_call
         self.call_first = call_first
         self.call_last = call_last
         self.no_final_subs = no_final_subs
         self.no_paragraphs = no_paragraphs
-        self.no_outer_pgraphs = no_outer_pgrahs
-        
+        self.no_outer_pgraphs = no_outer_pgraphs
         self.match_re = None
+        self._init_text_block = None
         self.is_done = False
     
     def update_match_re(self, match_re):
@@ -254,7 +266,7 @@ class TexPart(object):
         self.cmp_inside, self.cmp_starters, self.cmp_end = (
             [[re.compile(n) for n in c] for c in self.match_re])
         
-    def add_text(self, text_block):
+    def init_text(self, text_block):
         '''
         This function does most of the work of converting the document into
         objects.
@@ -262,23 +274,22 @@ class TexPart(object):
             in formatting and converts them to the respected TexPart object
         '''
         self.start, self.text_data, self.end = text_block
-
-        if self.call_first: self.call_first(self)
+        assert(type(self.text_data) == list)
+        self._init_text_block = self.start, self.text_data[:], self.end
         
-        if not self.no_update_text:
-            self.init_text(self.text_data)
-        
-        if not self.no_std_format:
-            self.std_format()
-        
-        if self.call_last: self.call_last(self)
-        self.text_data = text_data
+    def reset_format(self):
+        # used if parent TexPart doesn't want a particular piece of
+        # data to be formatted
+        self.start, self.text_data, self.end = self._init_text_block
     
-    def init_text(self, text_data):
+    def update_text(self, text_data):
+        '''Turns the text body into a set of str objects and TexPart objects'''
         every_dict = formatting.every_dict_formatting
+        assert(type(text_data) == list)
         for key, texpart in every_dict.iteritems():
             inout = get_objects_inout(text_data, *texpart.match_re)
             text_data = convert_inout(inout, texpart)
+        assert(type(text_data) == list)
         self.text_data = text_data
                 
     def insert_tex(self, index, data):
@@ -289,6 +300,20 @@ class TexPart(object):
     
     def get_wp_text(self):
         pass
+    
+    def format(self):
+        if self.no_update_text:
+            self.reset_format()            
+        
+        if self.call_first: [cf(self) for cf in self.call_first]
+        
+        if not self.no_update_text:
+            self.update_text(self.text_data)
+        
+            if not self.no_std_format:
+                self.std_format()
+        
+        if self.call_last: [cl(self) for cl in self.call_last]
         
     def std_format(self):
         ''' performs standard formating.
@@ -298,6 +323,7 @@ class TexPart(object):
                     are automatically added to the outside of the item.
                     To disable all paragraph boundaries, use 
             - makes sure all spaces are only single spaces
+            - goes through the final subs and converts them
         '''
         fmat = formatting
         one_space = (' {2,}', ' ')
@@ -309,45 +335,20 @@ class TexPart(object):
             all_subs += [paragraphs]
         all_subs += [one_space]
         
-        # format all subs to be in groups
-        all_subs = [('('+n[0]+')', n[1]) for n in all_subs]
-        # pull out the string format for or conversion
-        all_subs_str = (n[0] for n in all_subs)
-        # convert to or for sub matching
-        all_subs_or_re =  re.compile('|'.join(all_subs_str))
-        del all_subs_str
-        
-        # pre-compile for use with subfun
-        all_subs_re = [re.compile(n[0]) for n in all_subs]
-        
-        # put back together in a replacement list [[re, replacement], ...]
-        all_subs_re_replace = [(all_subs_re[i], all_subs[i][1]) 
-                for i in range(len(all_subs))]
+        # get the functions for matching and replacing
+        all_subs_or_re, all_subs_re_replace = textools.get_rcmp_list(all_subs)
         
         # create the subfunction for replacement
         subfun = textools.subfun(replace_list = all_subs_re_replace)
         
         for i, tp in enumerate(self.text_data):
-            if tp != type(str):
+            if type(tp) != str:
                 continue
             # strip all dangling new-lines and spaces
             tp = tp.strip()
             tp = all_subs_or_re.sub(subfun, tp)
             
             self.text_data[i] = tp
-#            
-#            if not self.no_paragraphs:
-#                tp = paragraphs.sub(''.join(fmat.PARAGRAPH), tp)
-#            if not self.no_outer_pgraphs:
-#                tp = ''.join([fmat.PARAGRAPH[0], 
-#                              tp,
-#                              fmat.PARAGRAPH[1]])
-#            if not self.no_final_subs:
-#                tp = final_subs_re.sub(subfun, tp)
-                
-        
-        
-        
 
 import formatting
 
