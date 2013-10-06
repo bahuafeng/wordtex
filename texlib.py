@@ -139,9 +139,10 @@ def process_document(path):
 
     # Get the document part
 #    text = delete_outside([text], formating.begin_re_dict['document'])
-    document = copy.copy(formatting.begin_dict['document'])
+    document_type = formatting.begin_dict['document']
+    inout = get_objects_inout([text], *document_type.match_re)
+    document = convert_inout(inout, document_type, return_first = True)
     # The major call of this function: does all the processing recursively
-    document.update_text(('', [text], ''))
     return document
 
 def print_tex_tree(texpart, tabs = 0):
@@ -156,16 +157,22 @@ def print_tex_tree(texpart, tabs = 0):
         for tp in texpart.text_data:
             print_tex_tree(tp, tabs)
 
-def convert_inout(inout, texpart_constructor):
+def convert_inout(inout, texpart_constructor, return_first = False):
+    if len(inout) == 1:
+        assert(inout[0][0] == False)
+        return inout[0][1]
+    
     def convert_processed(start, body, end):
         assert(start[0] == 2 and end[0] == 3)
         body = reform_text(body, is_in = True)
-        tp = copy.copy(texpart_constructor)
+        tp = copy.copy( texpart_constructor)
         tp.update_text((start[1], body, end[1]))
+        print 'Converting', start
         return tp
     
     def get_processed(was_in, processing):
         if was_in > 0:  # object
+#            pdb.set_trace()
             converted = convert_processed(processing[0],
                     processing[1:-1], processing[-1])
             return [converted]
@@ -177,7 +184,7 @@ def convert_inout(inout, texpart_constructor):
     processing = []
     # goes through text list and organizes things by whether they are
     # in or out. Then converts them to the specified constructor
-    for item in inout:
+    for i, item in enumerate(inout):
         indicator, ti = item
         is_in = bool(indicator)
         
@@ -186,13 +193,19 @@ def convert_inout(inout, texpart_constructor):
         
         if was_in == is_in:
             processing.append(item)
-        elif was_in != is_in:
-            text.extend(get_processed(was_in, processing))
+        else:
+            data = get_processed(was_in, processing)
+            text.extend(data)
             processing = [item]
+            if was_in and return_first:
+                return data[0]
         was_in = is_in
     
     if processing:
-        text.extend(get_processed(was_in, processing))
+        data = get_processed(was_in, processing)
+        text.extend(data)
+        if was_in and return_first:
+            return data[0]
     
     return text
 
@@ -250,13 +263,9 @@ class TexPart(object):
         '''
         start, text_data, end = text_block
         self.start, self.end = start, end   # mostly used for debugging
-        inout = get_objects_inout(text_data, *self.match_re)
-        text_data = convert_inout(inout, self)
         
         every_dict = formatting.every_dict_formatting
         for key, texpart in every_dict.iteritems():
-            print key, len(text_data)
-#            pdb.set_trace()
             inout = get_objects_inout(text_data, *texpart.match_re)
             text_data = convert_inout(inout, texpart)
     

@@ -101,18 +101,18 @@ txt_attributes = [
 ['textit'   ,tp(add_outside = ('<em>', '</em>')           )],# italicized
 ['uline'    ,tp(add_outside = ('''<span style="text-decoration: underline;">''', 
                               '</span>')                 )],# underlined
-]
-txt_attr_dict = build_dict('txt_attr', txt_attributes, 
-                           r'(\\{0}\{{)', None, r'(\}})')
-
-
-line_items = [
 ['section'      ,tp(add_outside = ('<h1><b>','</b></h1>'),
     call_first = [section_num]                                              )],
 ['section\*'    ,tp(add_outside = ('<h1><b>','</b></h1>'),              )],
 ['subsection'   ,tp(add_outside = ('<h2><b>','</b></h2>'),
     call_first = [subsection_num]                                           )], 
 ['subsection\*' ,tp(add_outside = ('<h2><b>','</b></h2>')               )], 
+]
+txt_attr_dict = build_dict('txt_attr', txt_attributes, 
+                           r'(\\{0}\{{)', None, r'(\}})')
+
+
+line_items = [
 ['item'         ,tp(add_outside = ('<li>','<\li>')                      )], # used in itemize and enumerate
 ['hline'        ,tp(add_outside = ('','')                               )], #TODO: used in tabular
 #[''     ,t(add_outside = '',''                      )],

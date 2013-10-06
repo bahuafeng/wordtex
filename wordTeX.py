@@ -4,9 +4,11 @@ Created on Sat Oct  5 23:38:09 2013
 
 @author: user
 """
+import sys, os
+sys.path.insert(1, '..')
 from cloudtb import dbe, system
 
-import sys, os
+
 
 import texlib
 import formatting
@@ -30,6 +32,7 @@ def main():
             outputfile = inputfile + ".wp.html"
 
     document = texlib.process_document(inputfile)
+    
     texlib.print_tex_tree(document)
     
 if __name__ == '__main__':
