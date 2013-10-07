@@ -15,10 +15,14 @@ import texlib
 from cloudtb import textools
 import copy
 
+## Feel Free to change these things if you want
+SECTION_NAME = "Section"
+SUBSECTION_NAME = "Part"
+
+
 # keeps track of section number in document
 SECTION_NUMBER = 0
 SUBSECTION_NUMBER = 0
-
 PARAGRAPH = ('<p>', '</p>')
 ###############################
 ### Call functions for formatting
@@ -28,7 +32,7 @@ def delete_self(texpart, *args, **kwargs):
 def section_num(texpart, *args, **kwargs):
     global SECTION_NUMBER
     SECTION_NUMBER += 1
-    texpart.text_data.insert(0, 'Section {0}: '.format(
+    texpart.text_data.insert(0, SECTION_NAME + ' {0}: '.format(
         SECTION_NUMBER))
     texpart.text_data = texlib.reform_text(texpart.text_data, 
                                            no_indicators= True)
@@ -36,7 +40,7 @@ def section_num(texpart, *args, **kwargs):
 def subsection_num(texpart, *args, **kwargs):
     global SUBSECTION_NUMBER
     SUBSECTION_NUMBER += 1
-    texpart.text_data.insert(0, 'Section {0}.{1}: '.format(
+    texpart.text_data.insert(0, SUBSECTION_NAME = ' {0}.{1}: '.format(
         SECTION_NUMBER, SUBSECTION_NUMBER))
     texpart.text_data = texlib.reform_text(texpart.text_data, 
                                            no_indicators= True)

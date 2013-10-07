@@ -3,6 +3,7 @@
 \documentclass[english]{article}
 \usepackage[T1]{fontenc}
 \usepackage[latin9]{inputenc}
+\usepackage{listings}
 \usepackage{babel}
 \begin{document}
 
@@ -15,6 +16,17 @@ And more text
 And a bit more.
 
 Yup, we are getting the hang of this.
+
+THIS IS A SINGLE PARAGRAPH \#\#\#\#\#\#\#\#\#\#\#\#\# THIS IS A SINGLE
+PARAGRAPH \#\#\#\#\#\#\#\#\#\#\#\#\# THIS IS A SINGLE PARAGRAPH \#\#\#\#\#\#\#\#\#\#\#\#\#
+THIS IS A SINGLE PARAGRAPH \#\#\#\#\#\#\#\#\#\#\#\#\# THIS IS A SINGLE
+PARAGRAPH \#\#\#\#\#\#\#\#\#\#\#\#\# THIS IS A SINGLE PARAGRAPH \#\#\#\#\#\#\#\#\#\#\#\#\#
+THIS IS A SINGLE PARAGRAPH \#\#\#\#\#\#\#\#\#\#\#\#\# THIS IS A SINGLE
+PARAGRAPH \#\#\#\#\#\#\#\#\#\#\#\#\# THIS IS A SINGLE PARAGRAPH \#\#\#\#\#\#\#\#\#\#\#\#\#
+THIS IS A SINGLE PARAGRAPH \#\#\#\#\#\#\#\#\#\#\#\#\# THIS IS A SINGLE
+PARAGRAPH \#\#\#\#\#\#\#\#\#\#\#\#\# THIS IS A SINGLE PARAGRAPH \#\#\#\#\#\#\#\#\#\#\#\#\#
+THIS IS A SINGLE PARAGRAPH \#\#\#\#\#\#\#\#\#\#\#\#\# THIS IS A SINGLE
+PARAGRAPH \#\#\#\#\#\#\#\#\#\#\#\#\# THIS IS A SINGLE PARAGRAPH \#\#\#\#\#\#\#\#\#\#\#\#\# 
 
 
 \subsection*{This is a subsection}
@@ -31,4 +43,53 @@ some text
 \subsection{And another numbered}
 
 more text
+
+\begin{lstlisting}
+%Is this a comment? I'm not so sure.
+Let's see
+-- Nope! It isn't. That actually appears
+%% yep, not a comment. 
+# how about this   I can type all the spaces I want here
+THIS IS A SINGLE LINE --  THIS IS A SINGLE LINE --  THIS IS A SINGLE LINE --  THIS IS A SINGLE LINE --  THIS IS A SINGLE LINE --  THIS IS A SINGLE LINE --  THIS IS A SINGLE LINE --  THIS IS A SINGLE LINE --  THIS IS A SINGLE LINE --  THIS IS A SINGLE LINE --  THIS IS A SINGLE LINE --  THIS IS A SINGLE LINE --  THIS IS A SINGLE LINE --  THIS IS A SINGLE LINE --  THIS IS A SINGLE LINE --  THIS IS A SINGLE LINE --  
+
+Yup, it's a single line! This is SO EASY
+nope
+\end{lstlisting}
+
+
+Now let's see if we can do some fancy lists
+\begin{itemize}
+\item simple list
+\item not doing much...
+
+\begin{itemize}
+\item oh! Now I indented
+\item Let's see what happpens again
+
+\begin{itemize}
+\item INDENTED again
+\end{itemize}
+\item and then unintnted
+\end{itemize}
+\end{itemize}
+it keeps wanting to go back
+
+now it stopped
+
+the line after the items looks wierd on here
+\begin{enumerate}
+\item Ok numbered list
+\item and...
+
+\begin{enumerate}
+\item indented
+\item how does it look?
+\end{enumerate}
+\item pretty good..
+\end{enumerate}
+done?
+
+yep, I guess done
+
+
 \end{document}
