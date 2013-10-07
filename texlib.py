@@ -146,13 +146,11 @@ def process_document(path):
     Each of which has an object called text_data that stores the strings and
     other TextParts that comprise it.
     '''
-    global document
     with open(path) as f:
         text = f.read()
 
     # Get the document part
-#    text = delete_outside([text], formating.begin_re_dict['document'])
-    document_type = wp_formatting.begin_dict['document']
+    document_type = TexPart.FORMAT_MODULE.begin_dict['document']
     inout = get_objects_inout([text], *document_type.match_re)
     document = convert_inout(inout, document_type, return_first = True)
     return document
@@ -230,6 +228,14 @@ class TexPart(object):
     See wp_formatting for information on how to extend the module using these --
     hopefully you'll find it pretty simple!
     '''
+    # It would be extremely easy to make this module export, say, true html.
+    # all one would have to do is copy - paste the wp_formatting file and
+    # put in the proper values. Then change the below module globally
+    # (texlib.TexPart.FORMAT_MODULE = new_format_module).
+    # It would only require the change of a few lines of code otherwise...
+    # I think!
+    FORMAT_MODULE = None
+    
     def __init__(self, 
                  label = None, 
                  no_update_text = None, 
@@ -309,7 +315,7 @@ class TexPart(object):
         
         Must be called before format or get_wp_text is called.
         '''
-        if self.done:
+        if self.is_done:
             raise Exception("cannot undo formating: already called format")
         text_data = self.text_data[:]
         for i, td in enumerate(text_data):
@@ -337,7 +343,7 @@ class TexPart(object):
     def update_text(self):
         '''Turns the text body into a set of str objects and TexPart objects
         Updates recursively'''
-        every_dict = wp_formatting.every_dict_formatting
+        every_dict = self.FORMAT_MODULE.every_dict_formatting
         assert(type(self.text_data) == list)
         for key, texpart in every_dict.iteritems():
             inout = get_objects_inout(self.text_data, *texpart.match_re)
@@ -361,9 +367,9 @@ class TexPart(object):
         return ''.join(wptext)
     
     def format(self):
-        if self.done:
+        if self.is_done:
             return
-        self.done = True
+        self.is_done = True
         self.check_no_update_text()
         
         if self.call_first: 
@@ -377,8 +383,8 @@ class TexPart(object):
             self.append_tex(self.add_outside[1])
             
         if not self.no_outer_pgraphs:
-            self.insert_tex(0, wp_formatting.PARAGRAPH[0])
-            self.append_tex(0, wp_formatting.PARAGRAPH[1])
+            self.insert_tex(0, self.FORMAT_MODULE.PARAGRAPH[0])
+            self.append_tex(self.FORMAT_MODULE.PARAGRAPH[1])
 
         if self.call_last: 
             [cl(self) for cl in self.call_last]
@@ -412,7 +418,7 @@ class TexPart(object):
             - makes sure all spaces are only single spaces
             - goes through the final subs and converts them
         '''
-        fmat = wp_formatting
+        fmat = self.FORMAT_MODULE
         one_space = (' {2,}', ' ')
         paragraphs = ('\n{2,}', ''.join(fmat.PARAGRAPH))
         all_subs = []
@@ -436,7 +442,7 @@ class TexPart(object):
             
             self.text_data[i] = tp
 
-import wp_formatting
+
 
 if __name__ == '__main__':
     import wordtex
