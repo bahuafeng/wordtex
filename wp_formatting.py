@@ -16,8 +16,8 @@ from cloudtb import textools
 import copy
 
 ## Feel Free to change these things if you want
-SECTION_NAME = "Section"
-SUBSECTION_NAME = "Part"
+SECTION_NAME = ""
+SUBSECTION_NAME = ""
 
 
 # keeps track of section number in document
@@ -40,7 +40,7 @@ def section_num(texpart, *args, **kwargs):
 def subsection_num(texpart, *args, **kwargs):
     global SUBSECTION_NUMBER
     SUBSECTION_NUMBER += 1
-    texpart.text_data.insert(0, SUBSECTION_NAME = ' {0}.{1}: '.format(
+    texpart.text_data.insert(0, SUBSECTION_NAME + ' {0}.{1}: '.format(
         SECTION_NUMBER, SUBSECTION_NUMBER))
     texpart.text_data = texlib.reform_text(texpart.text_data, 
                                            no_indicators= True)
@@ -78,8 +78,9 @@ begin_objects = [
 ['document'     ,tp()                                                  ],
 ['tabular'      ,tp(add_outside = ('TABLE_START','TABLE_END'),
                     no_outer_pgraphs = True)], #TODO: Placeholder
-['lstlisting'   ,tp(add_outside = ('<pre>','<\pre>'),
-                    no_update_text = True, no_std_format = True)],
+['lstlisting'   ,tp(add_outside = ('<ul><pre>','</pre></ul>'),
+                    no_update_text = True, no_std_format = True,
+                    no_outer_pgraphs=True)],
 ['itemize'      ,tp(add_outside = ('<ul>', '</ul>'),
                     no_outer_pgraphs = True)],
 ['enumerate'    ,tp(add_outside = ('<ul>','</ul>'),
@@ -125,7 +126,7 @@ txt_attr_dict = build_dict('txt_attr', txt_attributes,
 
 
 line_items = [
-['item'         ,tp(add_outside = ('<li>','<\li>'), 
+['item'         ,tp(add_outside = ('<li>','</li>'), 
                     no_outer_pgraphs = True)], # used in itemize and enumerate
 ['hline'        ,tp(add_outside = ('',''),
                     no_outer_pgraphs = True)], #TODO: used in tabular

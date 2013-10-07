@@ -190,34 +190,48 @@ def convert_inout(inout, texpart_constructor, return_first = False):
             return reform_text(processing)
     
     text = []
-    was_in = None
+    prev_indicator = None
+    process = False
     processing = []
+    next_processing = []
     # goes through text list and organizes things by whether they are
     # in or out. Then converts them to the specified constructor
     for i, item in enumerate(inout):
         indicator, ti = item
-        is_in = bool(indicator)
         
-        if was_in == None:
-            was_in = is_in
+        if prev_indicator == None:
+            prev_indicator = indicator
         
-        if was_in == is_in:
+        if indicator == 2 and prev_indicator == 0:
+            process = True
+            # no append, keep current item for next round
+            next_processing = [item]
+        elif indicator == 2 and prev_indicator != 2:    # should only happen at beginning
+            assert(prev_indicator == 3)
+            assert(not processing)
+            process = False
             processing.append(item)
+        elif indicator == 3:
+            assert(prev_indicator in (1,2))
+            process = True
+            processing.append(item)
+            next_processing = []
         else:
-            if was_in:
-#                pdb.set_trace()
-                pass
-            data = get_processed(was_in, processing)
+            process = False
+            processing.append(item)
+            
+        if process:
+            data = get_processed(prev_indicator, processing)
             text.extend(data)
-            processing = [item]
-            if was_in and return_first:
+            processing = next_processing
+            if prev_indicator and return_first:
                 return data[0]
-        was_in = is_in
+        prev_indicator = indicator
     
     if processing:
-        data = get_processed(was_in, processing)
+        data = get_processed(prev_indicator, processing)
         text.extend(data)
-        if was_in and return_first:
+        if prev_indicator and return_first:
             return data[0]
     
     assert(type(text) == list)
@@ -244,10 +258,11 @@ class TexPart(object):
                  call_first = None, 
                  call_last = None,
                  no_std_format = None, 
-                 no_final_subs = None,
+                 no_one_spaces = None,
                  no_paragraphs = False, 
                  add_outside = None, 
-                 no_outer_pgraphs = None):
+                 no_outer_pgraphs = None,
+                 no_final_subs = None,):
         '''
         label - used for debuging and to construct tree view
         
@@ -263,10 +278,9 @@ class TexPart(object):
         # no_std_format disables all these
         no_std_format = std_format won't be called during format. Will
             still be called on internal data.
-        no_final_subs - final substitutions (i.e. \$ -> $) won't be made.
-            will still be called on internal data
         no_paragraphs - override std format and don't use paragraphs for next
             lines. Will still have outer paragraphs unless overriden
+        no_one_spaces - overrides std format to reduce all spaces to one.
         
         # Extra. Not affected by above (except call last of course)
         add_outside - this is the outside characters that will be added
@@ -274,6 +288,8 @@ class TexPart(object):
             outer_pgraphs (paragraphs go outside of front/back).
         no_outer_pgraphs - makes it so the object does not have paragraphs
             around it.
+        no_final_subs - final substitutions (i.e. \$ -> $) won't be made.
+            will still be called on internal data
         '''
         self.label = label      # convinience, mostly for debugging
         
@@ -283,14 +299,16 @@ class TexPart(object):
         self.call_last = call_last
         
         self.no_std_format = no_std_format
-        self.no_final_subs = no_final_subs
+        self.no_one_spaces = no_one_spaces
         self.no_paragraphs = no_paragraphs
         
         self.add_outside = add_outside
         self.no_outer_pgraphs = no_outer_pgraphs
+        self.no_final_subs = no_final_subs
  
         self.match_re = None
         self._init_text_block = None
+        self.is_origional_text = None
         self.is_done = False
     
     def update_match_re(self, match_re):
@@ -310,22 +328,33 @@ class TexPart(object):
         watched.append((self.label, self))
         self.update_text()
         
-    def original_text(self):
+    def get_original_text(self, no_start_stop = False):
         '''Returns the original format of the string, recursively going to all
         it's children until everything is back to a single string form.
         
         Must be called before format or get_wp_text is called.
         '''
+        if self.is_origional_text:
+            body, = self.text_data
+            assert(type(body) == str)
+            if no_start_stop:
+                return body
+            else:
+                return self.start_txt + body + self.end_txt
         if self.is_done:
             raise Exception("cannot undo formating: already called format")
         text_data = self.text_data[:]
         for i, td in enumerate(text_data):
             if type(td) != str:
-                text_data[i] = td.original_text()
-        return self.start_txt + ''.join(text_data) + self.end_txt
+                text_data[i] = td.get_original_text()
+        body = ''.join(text_data)
+        if no_start_stop:
+            return body
+        return self.start_txt + body + self.end_txt
     
     def reset_text(self):
-        self.text_data = [self.original_text()]
+        self.text_data = [self.get_original_text(no_start_stop = True)]
+        self.is_origional_text = True
     
     def check_no_update_text(self):
         '''performs a check that converts all objects that didn't want their
@@ -344,6 +373,7 @@ class TexPart(object):
     def update_text(self):
         '''Turns the text body into a set of str objects and TexPart objects
         Updates recursively'''
+        self.is_origional_text = False
         every_dict = self.FORMAT_MODULE.every_dict_formatting
         assert(type(self.text_data) == list)
         for key, texpart in every_dict.iteritems():
@@ -371,14 +401,16 @@ class TexPart(object):
     def format(self):
         if self.is_done:
             return
-        self.is_done = True
         self.check_no_update_text()
+        self.is_done = True
         
         if self.call_first: 
             [cf(self) for cf in self.call_first]
         
-        if not self.no_std_format:
-            self.std_format()
+        if self.no_std_format:
+            self.no_paragraphs = self.no_one_spaces = True
+            
+        self.std_format()
         
         if self.add_outside:
             self.insert_tex(0, self.add_outside[0])
@@ -428,7 +460,8 @@ class TexPart(object):
             all_subs += fmat.final_subs
         if not self.no_paragraphs:
             all_subs += [paragraphs]
-        all_subs += [one_space]
+        if not self.no_one_spaces:
+            all_subs += [one_space]
         
         # get the functions for matching and replacing
         all_subs_or_re, all_subs_re_replace = textools.get_rcmp_list(all_subs)
@@ -439,7 +472,8 @@ class TexPart(object):
             if type(tp) != str:
                 continue
             # strip all dangling new-lines and spaces
-            tp = tp.strip()
+            if not self.no_std_format:
+                tp = tp.strip()
             tp = all_subs_or_re.sub(subfun, tp)
             
             self.text_data[i] = tp
