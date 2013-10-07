@@ -33,9 +33,9 @@ def format_outside(text_data, add_outside):
 
 ###################################3
 ## GENERAL FUNCTIONS   
-def get_objects_inout(text_objects, inside_list, starters_list, 
-                      end_list):
-    '''given the matches, returns the text in order in tuples as the following
+
+def get_text_data(text_objects, texpart_constructor, return_first = False):
+    '''given the matches, creates it in a readable array
     (2, txt3),  # value was the first inside start of group    
     (True, txt1),
     (True, txt2),
@@ -57,6 +57,7 @@ def get_objects_inout(text_objects, inside_list, starters_list,
     If a starters is imbeded in an inside, it is considered inside. For instance
     /iffase /ifblog no hello to world /fi /fi -- ifblog will be inside of /iffalse
     '''
+    inside_list, starters_list, end_list = texpart_constructor.match_re
     re_in = textools.re_in
     
     # error checking on file
@@ -76,7 +77,7 @@ def get_objects_inout(text_objects, inside_list, starters_list,
     
     num_in = 0
     set_num = None
-    ltext = []
+    inout = []
     #TODO: It has to match arbitrary if statements. I think this should be
     # pretty easy
     for txt in splited:
@@ -99,14 +100,15 @@ def get_objects_inout(text_objects, inside_list, starters_list,
                 set_num = 3
         
         if set_num:
-            ltext.append((set_num, txt))
+            inout.append((set_num, txt))
             set_num = None
         elif num_in > 0:
-            ltext.append((True, txt))
+            inout.append((True, txt))
         else:
-            ltext.append((False, txt))
+            inout.append((False, txt))
     
-    return ltext
+    return convert_inout(inout, texpart_constructor, 
+                         return_first=return_first)
 
 def reform_text(text_data, is_in = False, no_indicators = False):
     '''put all text objects that are next to eachother into a 
@@ -151,8 +153,7 @@ def process_document(path):
 
     # Get the document part
     document_type = TexPart.FORMAT_MODULE.begin_dict['document']
-    inout = get_objects_inout([text], *document_type.match_re)
-    document = convert_inout(inout, document_type, return_first = True)
+    document = get_text_data([text], document_type, return_first = True)
     return document
 
 def print_tex_tree(texpart, tabs = 0):
@@ -346,8 +347,9 @@ class TexPart(object):
         every_dict = self.FORMAT_MODULE.every_dict_formatting
         assert(type(self.text_data) == list)
         for key, texpart in every_dict.iteritems():
-            inout = get_objects_inout(self.text_data, *texpart.match_re)
-            self.text_data = convert_inout(inout, texpart)
+            self.text_data = get_text_data(self.text_data, texpart)
+#            inout = get_objects_inout(self.text_data, *texpart.match_re)
+#            self.text_data = convert_inout(inout, texpart)
             assert(type(self.text_data) == list)
                 
     def insert_tex(self, index, data):
@@ -441,8 +443,12 @@ class TexPart(object):
             tp = all_subs_or_re.sub(subfun, tp)
             
             self.text_data[i] = tp
-
-
+        
+        def __repr__(self):
+            return self.label
+        
+        def __str__(self):
+            return self.label
 
 if __name__ == '__main__':
     import wordtex

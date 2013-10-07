@@ -181,5 +181,79 @@ nope
 
 \end_layout
 
+\begin_layout Standard
+Now let's see if we can do some fancy lists
+\end_layout
+
+\begin_layout Itemize
+simple list
+\end_layout
+
+\begin_layout Itemize
+not doing much...
+\end_layout
+
+\begin_deeper
+\begin_layout Itemize
+oh! Now I indented
+\end_layout
+
+\begin_layout Itemize
+Let's see what happpens again
+\end_layout
+
+\begin_deeper
+\begin_layout Itemize
+INDENTED again
+\end_layout
+
+\end_deeper
+\begin_layout Itemize
+and then unintnted
+\end_layout
+
+\end_deeper
+\begin_layout Standard
+it keeps wanting to go back
+\end_layout
+
+\begin_layout Standard
+now it stopped
+\end_layout
+
+\begin_layout Standard
+the line after the items looks wierd on here
+\end_layout
+
+\begin_layout Enumerate
+Ok numbered list
+\end_layout
+
+\begin_layout Enumerate
+and...
+\end_layout
+
+\begin_deeper
+\begin_layout Enumerate
+indented
+\end_layout
+
+\begin_layout Enumerate
+how does it look?
+\end_layout
+
+\end_deeper
+\begin_layout Enumerate
+pretty good..
+\end_layout
+
+\begin_layout Standard
+done?
+\end_layout
+
+\begin_layout Standard
+yep, I guess done
+\end_layout
+
 \end_body
 \end_document
