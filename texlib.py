@@ -9,6 +9,8 @@ import re
 import copy
 from cloudtb import textools, iteration
 
+watched = []
+
 class LatexError(ValueError):
     def __init__(self, msg = '', line = '?'):
         ValueError.__init__(self)
@@ -144,6 +146,7 @@ def process_document(path):
     Each of which has an object called text_data that stores the strings and
     other TextParts that comprise it.
     '''
+    global document
     with open(path) as f:
         text = f.read()
 
@@ -169,7 +172,7 @@ def print_tex_tree(texpart, tabs = 0):
 def convert_inout(inout, texpart_constructor, return_first = False):
     if len(inout) == 1:
         assert(inout[0][0] == False)
-        return inout[0][1]
+        return [inout[0][1]]
     
     def convert_processed(start, body, end):
         assert(start[0] == 2 and end[0] == 3)
@@ -202,6 +205,9 @@ def convert_inout(inout, texpart_constructor, return_first = False):
         if was_in == is_in:
             processing.append(item)
         else:
+            if was_in:
+#                pdb.set_trace()
+                pass
             data = get_processed(was_in, processing)
             text.extend(data)
             processing = [item]
@@ -257,6 +263,7 @@ class TexPart(object):
         self.is_done = False
     
     def update_match_re(self, match_re):
+        match_re = [[textools.ensure_parenthesis(n) for n in m] for m in match_re]
         self.match_re = match_re
         self.cmp_inside, self.cmp_starters, self.cmp_end = (
             [[re.compile(n) for n in c] for c in self.match_re])
@@ -268,7 +275,8 @@ class TexPart(object):
         self.start_txt, self.text_data, self.end_txt = text_block
         assert(type(self.text_data) == list)
         self._init_text_block = self.start_txt, self.text_data[:], self.end_txt
-        
+        global watched
+        watched.append((self.label, self))
         self.update_text()
         
     def original_text(self):
@@ -280,7 +288,7 @@ class TexPart(object):
         text_data = self.text_data[:]
         for i, td in enumerate(text_data):
             if type(td) != str:
-                text_data[i] = td.original_format()
+                text_data[i] = td.original_text()
         return self.start_txt + ''.join(text_data) + self.end_txt
     
     def reset_text(self):
@@ -304,10 +312,13 @@ class TexPart(object):
         every_dict = formatting.every_dict_formatting
         assert(type(self.text_data) == list)
         for key, texpart in every_dict.iteritems():
+#            print 'WATCH', key, texpart
+#            if key == 'hline':
+#                pdb.set_trace()
+#            print watched[0], watched[0][1].text_data            
             inout = get_objects_inout(self.text_data, *texpart.match_re)
-            text_data = convert_inout(inout, texpart)
-        assert(type(self.text_data) == list)
-        self.text_data = text_data
+            self.text_data = convert_inout(inout, texpart)
+            assert(type(self.text_data) == list)
                 
     def insert_tex(self, index, data):
         return self.text_data.insert(index, data)
@@ -322,13 +333,18 @@ class TexPart(object):
     def format(self):
         self.check_no_update_text()
         if self.no_update_text:
-            self.reset_text()            
-            
+            self.reset_text()       
+            return
+        
+        pdb.set_trace()
         if self.call_first: 
             [cf(self) for cf in self.call_first]
         if not self.no_std_format:
             self.std_format()
         if self.call_last: [cl(self) for cl in self.call_last]
+        
+        for tp in self.text_data:
+            tp.format()
     
     def special_format(self, format_subs):
         '''convinience function for external functions to call with their own
@@ -354,6 +370,7 @@ class TexPart(object):
             - makes sure all spaces are only single spaces
             - goes through the final subs and converts them
         '''
+        assert(0)
         fmat = formatting
         one_space = (' {2,}', ' ')
         paragraphs = ('\n{2,}', ''.join(fmat.PARAGRAPH))
@@ -382,4 +399,5 @@ import formatting
 
 if __name__ == '__main__':
     import wordtex
+    from cloudtb import dbe
     wordtex.main()

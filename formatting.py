@@ -83,8 +83,8 @@ begin_objects = [
 ['equation'     ,tp(add_outside = ('','' ) )], #TODO: need basic equation
 ]
 
-begin_dict = build_dict('begin', begin_objects, r'(\\begin\{{{0}}} *?)', None,
-                           r'(\\end\{{{0}}} *?)')
+begin_dict = build_dict('begin', begin_objects, r'\\begin\{{{0}}} *?', None,
+                           r'\\end\{{{0}}} *?')
 
 # Create a dict for ifs
 
@@ -96,9 +96,9 @@ if_objects = [
                   no_outer_pgraphs = True)]
 ]
 
-if_dict = build_dict('if', if_objects, r'(\\if{0} )', 
-                        r'(\\if.*? )', 
-                        r'(\\fi )')
+if_dict = build_dict('if', if_objects, r'\\if{0} ', 
+                        r'\\if.*? ', 
+                        r'\\fi ')
 
 
 txt_attributes = [
@@ -117,7 +117,7 @@ txt_attributes = [
 ['subsection\*' ,tp(add_outside = ('<h2><b>','</b></h2>'))], 
 ]
 txt_attr_dict = build_dict('txt_attr', txt_attributes, 
-                           r'(\\{0}\{{)', None, r'(\}})')
+                           r'\\{0}\{{', None, r'\}}')
 
 
 line_items = [
@@ -172,7 +172,7 @@ def concatenate_dicts(*dicts):
     for d in dicts:
         out.update(d)
     return out
-    
+
 every_dict_formatting = concatenate_dicts(begin_dict, if_dict, txt_attr_dict,
                                           line_dict)
 
@@ -182,21 +182,6 @@ def get_dict_items(from_dict, items):
         items = items.split(',')
     items = set(items)
     return dict(((i[0], i[1]) for i in from_dict.iteritems() if i[0] in items))
-    
-std_format = get_dict_items(txt_attr_dict, 'textbf, textit, uline')
-
-tables_format = concatenate_dicts(get_dict_items(begin_dict, 'tabular'),
-                           get_dict_items(line_dict, 'hline'))
-
-lists_format = concatenate_dicts(get_dict_items(begin_dict, 
-                          'itemize, enumerate'),
-                          get_dict_items(line_dict, 'item'))
-                          
-code_format = get_dict_items(begin_dict, 'lstlisting')
-
-sections_format = get_dict_items(line_dict, 'section, section\*, subsection,'
-                                      ' subsection\*')
-
 
         
     

@@ -13,8 +13,10 @@ from cloudtb import dbe, system
 import texlib
 import formatting
 
+document = None
 
 def main():
+    global document
     import pdb
     argv = sys.argv
     inputfile = "tex_docs/simple.tex"
@@ -32,14 +34,14 @@ def main():
             outputfile = inputfile + ".wp.html"
 
     document = texlib.process_document(inputfile)
-    
-    document.no_update_text = True
     texlib.print_tex_tree(document)
     
-    pdb.set_trace()
+    document.no_update_text = True
+    print document.text_data
     document.format()
+    print document.text_data
     with open(outputfile, 'w') as f:
-        f.write(texlib.wordTeX())
+        f.write(texlib.wordtex())
         
     print 'File output: ', outputfile
     
