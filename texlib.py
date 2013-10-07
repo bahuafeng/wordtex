@@ -7,9 +7,7 @@ Created on Sun Oct  6 03:10:39 2013
 import pdb
 import re
 import copy
-from cloudtb import textools
-
-CMP_TYPE = type(re.compile(''))
+from cloudtb import textools, iteration
 
 class LatexError(ValueError):
     def __init__(self, msg = '', line = '?'):
@@ -164,7 +162,7 @@ def print_tex_tree(texpart, tabs = 0):
     else:
         print tform.format(texpart.label),
         print  ' ||start:{0} |end:{1}'.format(repr(texpart.start), 
-                                              repr(texpart.end))
+                                              repr(texpart.end_txt))
         tabs += 1
         for tp in texpart.text_data:
             print_tex_tree(tp, tabs)
@@ -221,8 +219,6 @@ def convert_inout(inout, texpart_constructor, return_first = False):
     assert(type(text) == list)
     return text
 
-
-#TODO: Need begins for colors and tables
 class TexPart(object):
     r'''this class is a text object, normally preceeded by either a begin
     statement or a single line (i.e. \header) and ended by an end statement
@@ -268,22 +264,44 @@ class TexPart(object):
         
     def init_text(self, text_block):
         '''
-        This function does most of the work of converting the document into
-        objects.
-            Each call calls all regular expression blocks of the dictionaries
-            in formatting and converts them to the respected TexPart object
+        This function initilizes the text data and calls update_text       
         '''
-        self.start, self.text_data, self.end = text_block
+        self.start_txt_txt, self.text_data, self.end_txt = text_block
         assert(type(self.text_data) == list)
-        self._init_text_block = self.start, self.text_data[:], self.end
+        self._init_text_block = self.start_txt, self.text_data[:], self.end_txt
         
-    def reset_format(self):
-        # used if parent TexPart doesn't want a particular piece of
-        # data to be formatted
-        self.start, self.text_data, self.end = self._init_text_block
+        self.update_text()
+        
+    def original_text(self):
+        '''Returns the original format of the string, recursively going to all
+        it's children until everything is back to a single string form.
+        
+        Must be called before format is called.
+        '''
+        text_data = self.text_data[:]
+        for i, td in enumerate(text_data):
+            if type(td) != str:
+                text_data[i] = td.original_format()
+        return self.start_txt + ''.join(text_data) + self.end_txt
+    
+    def reset_text(self):
+        self.text_data = [self.original_text()]
+    
+    def check_no_update_text(self):
+        '''performs a check that converts all objects that didn't want their
+        text to be modified into their original form.'''
+        if self.no_update_text:
+            self.reset_text()
+            return
+        for td in self.text_data:
+            if td.no_update_text:
+                td.reset_text()
+            else:
+                td.check_no_update_text()
     
     def update_text(self, text_data):
-        '''Turns the text body into a set of str objects and TexPart objects'''
+        '''Turns the text body into a set of str objects and TexPart objects
+        Updates recursively'''
         every_dict = formatting.every_dict_formatting
         assert(type(text_data) == list)
         for key, texpart in every_dict.iteritems():
@@ -299,21 +317,33 @@ class TexPart(object):
         return self.text_data.append(data)
     
     def get_wp_text(self):
-        pass
+        print 'get wp text not yet implemented'
+        raise NotImplemented
     
     def format(self):
+        self.check_no_update_text()
         if self.no_update_text:
-            self.reset_format()            
-        
-        if self.call_first: [cf(self) for cf in self.call_first]
-        
-        if not self.no_update_text:
-            self.update_text(self.text_data)
-        
-            if not self.no_std_format:
-                self.std_format()
-        
+            self.reset_text()            
+            
+        if self.call_first: 
+            [cf(self) for cf in self.call_first]
+        if not self.no_std_format:
+            self.std_format()
         if self.call_last: [cl(self) for cl in self.call_last]
+    
+    def special_format(self, format_subs):
+        '''convinience function for external functions to call with their own
+        formatting substitutions. See formatting.final_subs for an example
+        The input format_subs MUST be in regexp form!
+        Best to call during a "call_last" function call.
+        Note: this automatically strips newlines and spaces from front and
+        back of elements
+        '''
+        for i, tp in enumerate(self.text_data):
+            if type(tp) != str:
+                continue
+            tp = tp.strip()
+            self.text_data[i] = textools.replace_text_with_list(format_subs, tp)
         
     def std_format(self):
         ''' performs standard formating.
@@ -340,7 +370,6 @@ class TexPart(object):
         
         # create the subfunction for replacement
         subfun = textools.subfun(replace_list = all_subs_re_replace)
-        
         for i, tp in enumerate(self.text_data):
             if type(tp) != str:
                 continue
@@ -353,5 +382,5 @@ class TexPart(object):
 import formatting
 
 if __name__ == '__main__':
-    import wordTeX
-    wordTeX.main()
+    import wordtex
+    wordtex.main()

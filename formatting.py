@@ -3,7 +3,12 @@
 Created on Sun Oct  6 04:41:47 2013
 
 @author: user
+
+#TODO: Need colors and tables
+#TODO: need math
+
 """
+
 range = xrange
 
 import texlib
@@ -19,11 +24,6 @@ PARAGRAPH = ('<p>', '</p>')
 ### Call functions for formatting
 def delete_self(texpart, *args, **kwargs):
     texpart.text_data = ['']
-    no_start_end(texpart)
-    texpart.done = True
-
-def no_start_end(texpart, *args, **kwargs):
-    texpart.start, texpart.end = '', ''
 
 def section_num(texpart, *args, **kwargs):
     global SECTION_NUMBER
@@ -70,7 +70,6 @@ def build_dict(name, patterns,
     return mydict
     
 # Create a dict of begin objects
-    
 begin_objects = [
 ['document'     ,tp()                                                  ],
 ['tabular'      ,tp(add_outside = ('TABLE_START','TABLE_END'),
@@ -107,8 +106,8 @@ txt_attributes = [
                 no_outer_pgraphs = True)],# bolded
 ['textit'   ,tp(add_outside = ('<em>', '</em>'),
                 no_outer_pgraphs = True)],# italicized
-['uline'    ,tp(add_outside = ('''<span style="text-decoration: underline;">''', 
-                '</span>'), 
+['uline'    ,tp(add_outside = ('''<span style="text-decoration: ''', 
+                'underline;"></span>'), 
                 no_outer_pgraphs = True )],# underlined
 ['section'      ,tp(add_outside = ('<h1><b>','</b></h1>'),
     call_first = [section_num])],
@@ -189,7 +188,8 @@ std_format = get_dict_items(txt_attr_dict, 'textbf, textit, uline')
 tables_format = concatenate_dicts(get_dict_items(begin_dict, 'tabular'),
                            get_dict_items(line_dict, 'hline'))
 
-lists_format = concatenate_dicts(get_dict_items(begin_dict, 'itemize, enumerate'),
+lists_format = concatenate_dicts(get_dict_items(begin_dict, 
+                          'itemize, enumerate'),
                           get_dict_items(line_dict, 'item'))
                           
 code_format = get_dict_items(begin_dict, 'lstlisting')
