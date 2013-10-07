@@ -33,7 +33,11 @@ def main():
 
     document = texlib.process_document(inputfile)
     
+    document.no_update_text = True
     texlib.print_tex_tree(document)
+    
+    pdb.set_trace()
+    document.format()
     with open(outputfile, 'w') as f:
         f.write(texlib.wordTeX())
         

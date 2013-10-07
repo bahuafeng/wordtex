@@ -152,7 +152,6 @@ def process_document(path):
     document_type = formatting.begin_dict['document']
     inout = get_objects_inout([text], *document_type.match_re)
     document = convert_inout(inout, document_type, return_first = True)
-    # The major call of this function: does all the processing recursively
     return document
 
 def print_tex_tree(texpart, tabs = 0):
@@ -161,7 +160,7 @@ def print_tex_tree(texpart, tabs = 0):
         print tform.format('base string len: ' + str(len(texpart)))
     else:
         print tform.format(texpart.label),
-        print  ' ||start:{0} |end:{1}'.format(repr(texpart.start), 
+        print  ' ||start:{0} |end:{1}'.format(repr(texpart.start_txt), 
                                               repr(texpart.end_txt))
         tabs += 1
         for tp in texpart.text_data:
@@ -266,7 +265,7 @@ class TexPart(object):
         '''
         This function initilizes the text data and calls update_text       
         '''
-        self.start_txt_txt, self.text_data, self.end_txt = text_block
+        self.start_txt, self.text_data, self.end_txt = text_block
         assert(type(self.text_data) == list)
         self._init_text_block = self.start_txt, self.text_data[:], self.end_txt
         
@@ -299,15 +298,15 @@ class TexPart(object):
             else:
                 td.check_no_update_text()
     
-    def update_text(self, text_data):
+    def update_text(self):
         '''Turns the text body into a set of str objects and TexPart objects
         Updates recursively'''
         every_dict = formatting.every_dict_formatting
-        assert(type(text_data) == list)
+        assert(type(self.text_data) == list)
         for key, texpart in every_dict.iteritems():
-            inout = get_objects_inout(text_data, *texpart.match_re)
+            inout = get_objects_inout(self.text_data, *texpart.match_re)
             text_data = convert_inout(inout, texpart)
-        assert(type(text_data) == list)
+        assert(type(self.text_data) == list)
         self.text_data = text_data
                 
     def insert_tex(self, index, data):
@@ -318,7 +317,7 @@ class TexPart(object):
     
     def get_wp_text(self):
         print 'get wp text not yet implemented'
-        raise NotImplemented
+        raise NotImplementedError
     
     def format(self):
         self.check_no_update_text()
