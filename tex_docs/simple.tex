@@ -4,6 +4,15 @@
 \usepackage[T1]{fontenc}
 \usepackage[latin9]{inputenc}
 \usepackage{listings}
+
+\makeatletter
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% LyX specific LaTeX commands.
+%% Because html converters don't know tabularnewline
+\providecommand{\tabularnewline}{\\}
+
+\makeatother
+
 \usepackage{babel}
 \begin{document}
 
@@ -86,4 +95,22 @@ the line after the items looks wierd on here
 done?
 
 yep, I guess done
+
+
+\section{Ok, now tables.}
+
+\begin{tabular}{|c|c|c|c|c|}
+\hline 
+this & is & a  & pretty & big\tabularnewline
+\hline 
+\hline 
+tables &  &  &  & there\tabularnewline
+\hline 
+aren't &  & some &  & empy\tabularnewline
+\hline 
+ & spots &  &  & \tabularnewline
+\hline 
+ &  &  &  & \tabularnewline
+\hline 
+\end{tabular}
 \end{document}
