@@ -152,7 +152,7 @@ def process_document(path):
 
     # Get the document part
 #    text = delete_outside([text], formating.begin_re_dict['document'])
-    document_type = formatting.begin_dict['document']
+    document_type = wp_formatting.begin_dict['document']
     inout = get_objects_inout([text], *document_type.match_re)
     document = convert_inout(inout, document_type, return_first = True)
     return document
@@ -225,39 +225,63 @@ def convert_inout(inout, texpart_constructor, return_first = False):
     return text
 
 class TexPart(object):
-    r'''this class is a text object, normally preceeded by either a begin
-    statement or a single line (i.e. \header) and ended by an end statement
-    or a \n
+    '''This is the primary object of this library. It does most of the
+    processing work, and is what the entire document get's turned into.
+    See wp_formatting for information on how to extend the module using these --
+    hopefully you'll find it pretty simple!
     '''
-    def __init__(self, label = None, add_outside = None, 
-                 no_update_text = None, format_call = None,
-                 call_first = None, call_last = None,
-                 no_std_format = None, no_final_subs = None,
-                 no_paragraphs = False, no_outer_pgraphs = None):
+    def __init__(self, 
+                 label = None, 
+                 no_update_text = None, 
+                 format_call = None,
+                 call_first = None, 
+                 call_last = None,
+                 no_std_format = None, 
+                 no_final_subs = None,
+                 no_paragraphs = False, 
+                 add_outside = None, 
+                 no_outer_pgraphs = None):
         '''
-        add_outside = this is the outside characters that will be added
-            during the format call (front, back)
+        label - used for debuging and to construct tree view
+        
         no_update_text - update_text will not be called on this module once
             it is discovered (it cannot contain ANY internal TexPart objects)
-        call_first - call this list of functions before any processing
-        call_last - call this list of functions after all processing
-        format_call - call this function instead of format
+            Will still call wp_formatting options. Recommended to set
+            no_std_formating = True and other desired attributes
+        
+        # useful for very custom types
+        call_first - call this list of functions before any formating
+        call_last - call this list of functions after all formating
+        
+        # no_std_format disables all these
         no_std_format = std_format won't be called during format. Will
             still be called on internal data.
         no_final_subs - final substitutions (i.e. \$ -> $) won't be made.
             will still be called on internal data
-        no_paragraphs - override std format and don't use paragraphs. Useful
-            for things like lists.
+        no_paragraphs - override std format and don't use paragraphs for next
+            lines. Will still have outer paragraphs unless overriden
+        
+        # Extra. Not affected by above (except call last of course)
+        add_outside - this is the outside characters that will be added
+            during the format call (front, back). Note: processed before
+            outer_pgraphs (paragraphs go outside of front/back).
+        no_outer_pgraphs - makes it so the object does not have paragraphs
+            around it.
         '''
         self.label = label      # convinience, mostly for debugging
-        self.add_outside = add_outside
+        
         self.no_update_text = no_update_text
-        self.no_std_format = no_std_format
+        
         self.call_first = call_first
         self.call_last = call_last
+        
+        self.no_std_format = no_std_format
         self.no_final_subs = no_final_subs
         self.no_paragraphs = no_paragraphs
+        
+        self.add_outside = add_outside
         self.no_outer_pgraphs = no_outer_pgraphs
+ 
         self.match_re = None
         self._init_text_block = None
         self.is_done = False
@@ -283,8 +307,10 @@ class TexPart(object):
         '''Returns the original format of the string, recursively going to all
         it's children until everything is back to a single string form.
         
-        Must be called before format is called.
+        Must be called before format or get_wp_text is called.
         '''
+        if self.done:
+            raise Exception("cannot undo formating: already called format")
         text_data = self.text_data[:]
         for i, td in enumerate(text_data):
             if type(td) != str:
@@ -301,7 +327,9 @@ class TexPart(object):
             self.reset_text()
             return
         for td in self.text_data:
-            if td.no_update_text:
+            if type(td) == str:
+                pass
+            elif td.no_update_text:
                 td.reset_text()
             else:
                 td.check_no_update_text()
@@ -309,13 +337,9 @@ class TexPart(object):
     def update_text(self):
         '''Turns the text body into a set of str objects and TexPart objects
         Updates recursively'''
-        every_dict = formatting.every_dict_formatting
+        every_dict = wp_formatting.every_dict_formatting
         assert(type(self.text_data) == list)
         for key, texpart in every_dict.iteritems():
-#            print 'WATCH', key, texpart
-#            if key == 'hline':
-#                pdb.set_trace()
-#            print watched[0], watched[0][1].text_data            
             inout = get_objects_inout(self.text_data, *texpart.match_re)
             self.text_data = convert_inout(inout, texpart)
             assert(type(self.text_data) == list)
@@ -327,28 +351,46 @@ class TexPart(object):
         return self.text_data.append(data)
     
     def get_wp_text(self):
-        print 'get wp text not yet implemented'
-        raise NotImplementedError
+        self.format()
+        wptext = []
+        for tp in self.text_data:
+            if type(tp) == str:
+                wptext.append(tp)
+            else:
+                wptext.append(tp.get_wp_text())
+        return ''.join(wptext)
     
     def format(self):
-        self.check_no_update_text()
-        if self.no_update_text:
-            self.reset_text()       
+        if self.done:
             return
+        self.done = True
+        self.check_no_update_text()
         
-        pdb.set_trace()
         if self.call_first: 
             [cf(self) for cf in self.call_first]
+        
         if not self.no_std_format:
             self.std_format()
-        if self.call_last: [cl(self) for cl in self.call_last]
         
-        for tp in self.text_data:
-            tp.format()
+        if self.add_outside:
+            self.insert_tex(0, self.add_outside[0])
+            self.append_tex(self.add_outside[1])
+            
+        if not self.no_outer_pgraphs:
+            self.insert_tex(0, wp_formatting.PARAGRAPH[0])
+            self.append_tex(0, wp_formatting.PARAGRAPH[1])
+
+        if self.call_last: 
+            [cl(self) for cl in self.call_last]
+        
+        if not self.no_update_text:
+            for tp in self.text_data:
+                if type(tp) != str:
+                    tp.format()
     
     def special_format(self, format_subs):
         '''convinience function for external functions to call with their own
-        formatting substitutions. See formatting.final_subs for an example
+        wp_formatting substitutions. See wp_formatting.final_subs for an example
         The input format_subs MUST be in regexp form!
         Best to call during a "call_last" function call.
         Note: this automatically strips newlines and spaces from front and
@@ -370,8 +412,7 @@ class TexPart(object):
             - makes sure all spaces are only single spaces
             - goes through the final subs and converts them
         '''
-        assert(0)
-        fmat = formatting
+        fmat = wp_formatting
         one_space = (' {2,}', ' ')
         paragraphs = ('\n{2,}', ''.join(fmat.PARAGRAPH))
         all_subs = []
@@ -395,7 +436,7 @@ class TexPart(object):
             
             self.text_data[i] = tp
 
-import formatting
+import wp_formatting
 
 if __name__ == '__main__':
     import wordtex

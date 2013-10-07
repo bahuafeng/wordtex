@@ -11,7 +11,6 @@ from cloudtb import dbe, system
 
 
 import texlib
-import formatting
 
 document = None
 
@@ -36,8 +35,8 @@ def main():
     document = texlib.process_document(inputfile)
     texlib.print_tex_tree(document)
     
-    document.no_update_text = True
-    print document.text_data
+#    document.no_update_text = True
+#    print document.text_data
     document.format()
     print document.text_data
     with open(outputfile, 'w') as f:
