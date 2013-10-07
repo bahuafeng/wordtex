@@ -1,0 +1,170 @@
+%% LyX 2.0.2 created this file.  For more info, see http://www.lyx.org/.
+%% Do not edit unless you really know what you are doing.
+\documentclass[english]{article}
+\usepackage[T1]{fontenc}
+\usepackage[latin9]{inputenc}
+\usepackage{listings}
+\setlength{\parskip}{\smallskipamount}
+\setlength{\parindent}{0pt}
+\usepackage{babel}
+\begin{document}
+
+\section{Wordtex -- The Latex Publishing Software for Python}
+
+Wordtex is an attempt to be a full feature Latex conversion software
+to html (specifically for wordpress html, but aims to be general)
+that aims to replace the README.txt files in most open source projects.
+For easy to read documentation viewing, you should be looking at the
+``developer.html'' version of this file. This file was originally
+created with the extremely easy to use \LaTeX{} editor, Lyx, and converted
+using itself.
+
+
+\subsection{Latex Advantages}
+
+There are several reasons that using Latex is superior for code documentation
+than the current methods I have found.
+\begin{enumerate}
+\item Can automatically output to a more readable format, such as making
+lists like this one. The hope is to integrate it with the publish
+module in cloudtb to automatically create the documentation files
+every version.
+\item Plays nicely with revision control allowing easy tracking of changes
+to documentation.
+\item The output (html) also plays nicely with revision control, so you
+can even track the output so new developers can start reading without
+executing a script.
+
+\begin{enumerate}
+\item The hope is to eventually integrate the output (html) to automatically
+publish on a wiki or website.
+\end{enumerate}
+\item Is a fully extensible markup language, allowing you to do almost anything
+you want (provided this module has been extended to handle it!)
+\item Can eventually provide extensible features such as automatc importing
+of python documentation. The hope is that code such as \textit{\textbackslash{}python\{docs,module,function\}
+}will automatically import the doc function of that python module
+during conversion.
+\item Instead of wiki's, which certainly have many uses, this text automatically
+ships with the package and is more accessible to offline developers.
+In addition, having the developer documentation reside next to the
+code \textit{just makes sense}.
+\end{enumerate}
+
+\section{Code Overview}
+
+Word\TeX{} was written in a highly object oriented manner in order
+to be easily extend-able. All formatting options are kept in \textbf{formatting.py}
+and it should be easy to add any option you want to do with only a
+minimal knowledge of python. See the below documentation on \textbf{wp\_formatting.py}
+for more info.
+
+
+\subsection{wordtex.py}
+
+This file is the main entry point and mostly handles user input. No
+classes or functions are defined in here that are used in the module
+as a whole.
+
+
+\subsection{publish.py}
+
+This is a publish file under the same effort as that in cloudtb. It
+currently only adjusts the license, but the hope is to integrate it
+fully to automatically publish documentation like this.
+
+
+\subsection{wp\_formatting.py}
+
+
+\subsubsection{Overview}
+
+This is the primary formatting module, and provides easy extensibility
+of Latex function. Latex format types are split into five broad categories
+\begin{enumerate}
+\item \textit{\textbackslash{}begin\{...\} \textbackslash{}end -- }The whole
+textblock is outlined by these headers
+\item \textit{\textbackslash{}if... \textbackslash{}fi }-- The text starts
+and ends with these statements
+\item Text attributes of the form \textit{\textbackslash{}attr\{your text\}}~
+\item Line items of the form \textit{\textbackslash{}lineitem} that end
+with the newline character.
+\end{enumerate}
+Each item is of the following format
+
+\begin{lstlisting}
+format_list = [
+[item1,tp(...)]
+[item2,tp(...)]
+]
+\end{lstlisting}
+
+
+the ``items'' in the above act as both labels (to be used in debugging)
+and in the respective templates for each list. You can see how your
+new item will be formatted by looking at the templates in the \textbf{build\_dict
+}call immediately below your list.
+
+
+\subsubsection{More Detail: The Internals of formatting.}
+
+In order for Word\TeX{} directly uses the formatting module (primarily
+the \textbf{every\_dict\_formatting} dictionary) to directly construct
+it's TexPart objects. \textbf{TexPart.update}, which is called every
+time text is initialized, goes through every formatting regular expression
+and tries to convert them to TexPart objects. This happens through
+two functions:
+\begin{enumerate}
+\item \textbf{texlib.get\_text\_data} is called with a list of text\_objects
+-- which is just a list containing concatenated strings and TexPart
+objects (there will never be two strings next to eachother, this is
+ensured with the \textbf{reform\_text}~function). \textbf{get\_text\_data}
+splits up this list using\textbf{ texpart\_constructor.match\_re }and
+then goes through this list, splitting it up into interesting sections
+-- primarily the start (value 2), body (value 1) and end (value 3)
+of each text part. It ignores TexPart objects, as they have already
+been processed.
+\item It then automatically passes this data onto \textbf{convert\_inout},
+which uses the start, body, and end properties provided by the above
+to construct the objects by using copy.copy() on the text\_part constructor.
+\end{enumerate}
+
+\subsection{textlib.py}
+
+This is the main module for wordtex. The primary class is TexPart,
+which is what handles all the formating. This class is intended to
+make it extremely easy to extend the formatting options available
+in the Word\TeX{} package. 
+
+The conversion process directly uses this module as goes as follows:
+\begin{enumerate}
+\item An outside function (i.e. \textbf{process\_document }in this module)
+initializes the document class and creates the first TexPart. 
+\item This automatically (through it's \textbf{init\_text} member function)
+recursively creates the internal TexPart objects that reside in it's
+text data.
+\item Each TexPart has it's formatting options defined in \textbf{wp\_formatting.py},
+after everything has been imported, the \textbf{.format} method is
+called for the highest level TexPart (normally document), which recursively
+formats all the data.
+
+\begin{enumerate}
+\item Another method is to simply call the \textbf{.get\_wp\_text} method,
+which automatically calls the \textbf{.format}~method.
+\end{enumerate}
+\end{enumerate}
+\textbf{Additional notes:}
+\begin{enumerate}
+\item All data in TexPart is recoverable, as long as the \textbf{format}~function
+hasn't been called. This allows parent TexParts to override the automatic
+conversion process and convert what WordTex \textit{thinks }are objects
+back into regular text (can be done through \textbf{.reset\_text}
+or \textbf{.get\_original\_text}). This makes creating special formatting
+very straightforward, as you can signal to let your custom \textbf{call\_first}
+and \textbf{call\_last }options handle all the text.
+\item All formating options in \textbf{wp\_formatting.py} are defined in
+TexParts. When converting, the class is automatically copied. See
+\textbf{convert\_processed} inside of \textbf{convert\_inout} for
+an example on how to do this.\end{enumerate}
+
+\end{document}

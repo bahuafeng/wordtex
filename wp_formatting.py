@@ -66,21 +66,27 @@ tp = texlib.TexPart
 # TODO: make label store the dictionary it is from
 def build_dict(name, patterns, 
                inside_template = None, start_template = None, 
-               end_template = None):
+               end_template = None, custom = None):
     mydict = {}
+    i = 0
     for p, texpart in patterns:
-        if inside_template == None:
-            inside = []
+        if custom != None:
+            i += 1
+            inside, start, end = p
+            p = 'i {0}:{1}:{2}'.format(i, inside, start, end)
         else:
-            inside = [inside_template.format(p)]
-        if start_template == None: 
-            start = []
-        else:
-            start = [start_template.format(p)]
-        if end_template == None:
-            end = []
-        else:
-            end = [end_template.format(p)]
+            if inside_template == None:
+                inside = []
+            else:
+                inside = [inside_template.format(p)]
+            if start_template == None: 
+                start = []
+            else:
+                start = [start_template.format(p)]
+            if end_template == None:
+                end = []
+            else:
+                end = [end_template.format(p)]
         
         new_tp = copy.copy(texpart)
         new_tp.update_match_re((inside, start, end))
@@ -134,7 +140,7 @@ txt_attributes = [
 ['section\*'    ,tp(add_outside = ('<h1><b>','</b></h1>'),)],
 ['subsection'   ,tp(add_outside = ('<h2><b>','</b></h2>'),
     call_first = [subsection_num])], 
-['subsection\*' ,tp(add_outside = ('<h2><b>','</b></h2>'))], 
+['subsection*' ,tp(add_outside = ('<h2><b>','</b></h2>'))], 
 ]
 txt_attr_dict = build_dict('txt_attr', txt_attributes, 
                            r'\\{0}\{{', None, r'\}}')
@@ -149,10 +155,21 @@ line_items = [
 ]
 line_dict = build_dict('line', line_items, r'\\{0} ', None, r'\n')
 
+
+#################
+## Custom items - #TODO NOT YET TESTED
+# if you REALLY need to do your own custom regular expression matching,
+# you can do so here. NOTE that you do NOT need to put parenthesis around
+# the patter, as this will be done automatically.
+custom_items = [
+#[['custom regexp insisde'], ['custom regexp outside'], ['custom regexp end']], tp()]
+]
+
+custom_dict = build_dict('custom', custom_items)
+                         
 ###########################
 ## Create some final formatting substitutions
-## Math can handle itself (need to create a new module)
-
+## These should generally be of very few characters.
 
 final_subs = [
     [r'\#'      ,'#'],
@@ -187,9 +204,6 @@ final_subs = [(textools.convert_to_regexp(n[0]), n[1])
 #
 # We also have final_subs, which substitutes characters in so wordpress can
 #   read them.
-#
-# We need to put items into the appropriate dictionaries so that the appropriate
-# flags can call them or not call them.
 
 def concatenate_dicts(*dicts):
     out = {}
@@ -198,14 +212,6 @@ def concatenate_dicts(*dicts):
     return out
 
 every_dict_formatting = concatenate_dicts(begin_dict, if_dict, txt_attr_dict,
-                                          line_dict)
-
-def get_dict_items(from_dict, items):
-    '''put in dict items as list or string and get them as a dict'''
-    if type(items) == str:
-        items = items.split(',')
-    items = set(items)
-    return dict(((i[0], i[1]) for i in from_dict.iteritems() if i[0] in items))
-
+                                          line_dict, custom_dict)
         
     

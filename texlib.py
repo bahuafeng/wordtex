@@ -51,7 +51,20 @@ def format_outside(text_data, add_outside):
 ## GENERAL FUNCTIONS   
 
 def get_text_data(text_objects, texpart_constructor, return_first = False):
-    '''given the matches, creates it in a readable array
+    '''
+    This is the primary function for converting data into TexParts.
+    Inputs:
+        text_objects - list of strings and TexParts, must have been formated by
+            reform_text
+        texpart_constructor - the constructor used, normally defined in
+            a list in wp_formatting.py
+        return_first - only used by the get_document function, returns only
+            the first object found.
+    Output:
+        returns the fully created text_data that is held in all TexPart objects
+        
+    The internal workings are as follows:    
+    given the matches, creates it in a readable array
     (2, txt3),  # value was the first inside start of group    
     (True, txt1),
     (True, txt2),
@@ -82,7 +95,7 @@ def get_text_data(text_objects, texpart_constructor, return_first = False):
     # split up text for compiling
     splited = []
     for tobj in text_objects:
-        if type(tobj) == TexPart:
+        if type(tobj) != str:
             splited.append(tobj)
         else:
             splited.extend(match_cmp.split(tobj))
@@ -100,7 +113,7 @@ def get_text_data(text_objects, texpart_constructor, return_first = False):
         assert(num_in >= 0)
         if txt in (None, ''):
             continue
-        elif type(txt) == TexPart:
+        elif type(txt) !:
             pass    # TexParts have been alrady processed.
         elif re_in(txt, inside):
             if num_in == 0:
@@ -148,7 +161,7 @@ def reform_text(text_data, is_in = False, no_indicators = False):
             assert(n == 0)  # something wasn't processed!
         else:
             assert(n > 0)
-        if type(txt) == TexPart:
+        if type(txt) != str:
             if all_txt:
                 out.append(''.join(all_txt))
                 out.append(txt)
