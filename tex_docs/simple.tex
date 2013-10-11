@@ -4,6 +4,8 @@
 \usepackage[T1]{fontenc}
 \usepackage[latin9]{inputenc}
 \usepackage{listings}
+\usepackage{array}
+\usepackage{multirow}
 
 \makeatletter
 
@@ -99,18 +101,31 @@ yep, I guess done
 
 \section{Ok, now tables.}
 
-\begin{tabular}{|c|c|c|c|c|}
+\begin{tabular}{c|c}
+\hline  col1 & 2 \tabularnewline
+\hline  col 3 & 4 \tabularnewline
+\end{tabular}
+
+\begin{tabular}{|>{\raggedright}m{4cm}||>{\raggedright}m{10cm}|}
 \hline 
-this & is & a  & pretty & big\tabularnewline
+This column is 4 cm GIBBERISH GIBBERISH GIBBERISH GIBBERISH  & This column is 10 GIBBERISH GIBBERISH GIBBERISH GIBBERISH GIBBERISH
+GIBBERISH GIBBERISH GIBBERISH GIBBERISH GIBBERISH GIBBERISH GIBBERISH
+GIBBERISH GIBBERISH GIBBERISH GIBBERISH GIBBERISH GIBBERISH GIBBERISH
+GIBBERISH GIBBERISH GIBBERISH \tabularnewline
 \hline 
 \hline 
-tables &  &  &  & there\tabularnewline
+\multirow{1}{4cm}{GIBBERISH GIBBERISH GIBBERISH GIBBERISH GIBBERISH } & \multirow{1}{10cm}{}\tabularnewline
 \hline 
-aren't &  & some &  & empy\tabularnewline
 \hline 
- & spots &  &  & \tabularnewline
+GIBBERISH GIBBERISH GIBBERISH GIBBERISH GIBBERISH  & \tabularnewline
 \hline 
- &  &  &  & \tabularnewline
+\hline 
+GIBBERISH GIBBERISH & spots\tabularnewline
+\hline 
+\hline 
+I'm not quite sure how it is formatting both of them to be multiline... & \tabularnewline
 \hline 
 \end{tabular}
+
+
 \end{document}

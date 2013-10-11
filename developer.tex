@@ -7,9 +7,22 @@
 \setlength{\parskip}{\smallskipamount}
 \setlength{\parindent}{0pt}
 \usepackage{babel}
+\usepackage[unicode=true]
+ {hyperref}
+\usepackage{breakurl}
 \begin{document}
 
-\section{Wordtex -- The Latex Publishing Software for Python}
+\title{Wordtex -- The Latex Publishing Software for Python}
+
+
+\author{Original Copyright Garrett Berg \href{http://cloudformdesign.com}{cloudformdesign.com}}
+
+\maketitle
+This project and file are Licensed under the GNU Geneal Public License
+v3 or greater. For more information see \href{http://www.gnu.org/licenses/}{http://www.gnu.org/licenses/}
+
+
+\section{About}
 
 Wordtex is an attempt to be a full feature Latex conversion software
 to html (specifically for wordpress html, but aims to be general)
@@ -103,7 +116,10 @@ format_list = [
 the ``items'' in the above act as both labels (to be used in debugging)
 and in the respective templates for each list. You can see how your
 new item will be formatted by looking at the templates in the \textbf{build\_dict
-}call immediately below your list.
+}call immediately below your list. 
+
+\textbf{IMPORTANT: }All items are in regular expression format! To
+read more about regular expressions, go here (need link) 
 
 
 \subsubsection{More Detail: The Internals of formatting.}
@@ -112,8 +128,8 @@ In order for Word\TeX{} directly uses the formatting module (primarily
 the \textbf{every\_dict\_formatting} dictionary) to directly construct
 it's TexPart objects. \textbf{TexPart.update}, which is called every
 time text is initialized, goes through every formatting regular expression
-and tries to convert them to TexPart objects. This happens through
-two functions:
+for it's \textit{text\_data} and tries to convert them to TexPart
+objects. This happens through two functions:
 \begin{enumerate}
 \item \textbf{texlib.get\_text\_data} is called with a list of text\_objects
 -- which is just a list containing concatenated strings and TexPart
@@ -131,7 +147,10 @@ to construct the objects by using copy.copy() on the text\_part constructor.
 
 \subsection{textlib.py}
 
-This is the main module for wordtex. The primary class is TexPart,
+
+\subsubsection{Overview}
+
+This is the main module for wordtex. The primary class is \textbf{TexPart},
 which is what handles all the formating. This class is intended to
 make it extremely easy to extend the formatting options available
 in the Word\TeX{} package. 
@@ -153,7 +172,8 @@ formats all the data.
 which automatically calls the \textbf{.format}~method.
 \end{enumerate}
 \end{enumerate}
-\textbf{Additional notes:}
+
+\subsubsection{Additional notes:}
 \begin{enumerate}
 \item All data in TexPart is recoverable, as long as the \textbf{format}~function
 hasn't been called. This allows parent TexParts to override the automatic
@@ -165,6 +185,54 @@ and \textbf{call\_last }options handle all the text.
 \item All formating options in \textbf{wp\_formatting.py} are defined in
 TexParts. When converting, the class is automatically copied. See
 \textbf{convert\_processed} inside of \textbf{convert\_inout} for
-an example on how to do this.\end{enumerate}
+an example on how to do this.
+\end{enumerate}
+
+\section{Helping with this Project}
+
+Git repository 
+
+
+\subsection{Project Goals}
+
+Word\TeX{} aims to integrate with \textbf{publish.py }found in \href{http://Cloud Toolbox}{https://github.com/cloudformdesign/cloudtb}
+in order to become a defacto-standard for use with docmenting python
+code. The advantages of latex for this purpose are outlined in Section
+1.
+
+Word\TeX{} is a part of the \textbf{cloudtb}~project which aims to
+provide a uniform, integrated toolbox for the open source community
+to publish their useful python code.
+
+Word\TeX{} also aims to make writing posts for blogs a lot easier,
+in fact it started because I (Garrett) was sick of conventional blogging
+software and just wanted something that \textit{just worked}. As I
+continued to use Latex and the program developed by Luca Trevisan,
+I realized that Latex could be a lot more. Trying to update his code
+to fit my needs proved an act of frustration, however his code gave
+me inspiration as well as a somewhat-usable base for Word\TeX{}.
+
+
+\subsection{TODO List}
+\begin{itemize}
+\item Add math functionality back in -- Lucas's original code was designed
+to handle math. This project has different goals, but should still
+provide this funcationality
+\item \ifpy (print("hello world")\fi <--(may be invisible) Standard Latex
+viewers don't do anything with this
+\item \ifpy doc('module', 'function')\fi This is how I want to pull documentation
+\item I was edited
+\item Add \textbackslash{}python\{fuction, {*}args\} methods -- These can
+be used to insert text directly from python macros.
+
+\begin{itemize}
+\item related -- directly insert pydocs of functions
+\item related -- copy to-do list from the repository to-do list, so that
+lists like this can be automated in the future!
+\item related -- define document python variables to be used in these functions
+\end{itemize}
+\item Tables -- tables are not yet supported. I did not like Luca's original
+implementation so I am searching for a different one
+\item integrate fully with publish.py\end{itemize}
 
 \end{document}
