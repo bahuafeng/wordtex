@@ -22,8 +22,8 @@
 '''
 OK, tables
 Note: raggedright means left justified. centering means centered, etc.
-It looks like everything is really set up in the very first line. Everyting else is
-just standard processing.
+It looks like everything is really set up in the very first line. Everyting 
+else is just standard processing.
 
 For the non-lists you have to watch out for the enter key -- it looks like it
 is using standard spacing! See the first line "center aligned" row
@@ -47,53 +47,39 @@ r3 &  & \tabularnewline
 \hline 
 \end{tabular}
 
-### HTML TABLE FROM SCRIBEFIRE
-# not yet yested
-<table width="689" cellspacing="0" cellpadding="0"><colgroup><col width="128" /> <col width="168" /> <col width="393" /> </colgroup>
+### HTML TABLE FROM WORDPRESS
+<style type="text/css"><!--
+TD P { margin-bottom: 0in; }P { margin-bottom: 0.08in; }A:link {  }
+--></style>
+<table width="689" cellspacing="0" cellpadding="0"><colgroup> <col width="128" /> <col width="168" /> <col width="393" /> </colgroup>
 <tbody>
 <tr valign="TOP">
-<td style="border: none; padding: 0in;" width="128">
-<p style="font-weight: normal;">r1 c1 with width 5. These columns wrap rather nicely</p>
+<td width="128">r1 c1 with width 5. These columns wrap rather nicely</td>
+<td width="168">
+<p align="CENTER">r1c2</p>
+<p align="CENTER">center alligned</p>
 </td>
-<td style="border: none; padding: 0in;" width="168">
-<p style="font-weight: normal;" align="CENTER">r1c2</p>
-<p style="font-weight: normal;" align="CENTER">center alligned</p>
-</td>
-<td style="border: none; padding: 0in;" width="393">
-<p style="font-weight: normal;">• r1c3</p>
-<p style="font-weight: normal;"></p>
-<p style="font-weight: normal;">• look! I'm a list!</p>
-<p style="font-weight: normal;"></p>
-<p style="font-weight: normal;">• For lists, it is a good idea to left justify, like this column!</p>
-<p style="font-weight: normal;"></p>
-<p style="font-weight: normal;">• I have a width of 7</p>
+<td width="393">
+<ul>
+	<li>r1c3</li>
+	<li>look! I'm a list!</li>
+	<li>For lists, it is a good idea to left justify, like this column!</li>
+	<li>I have a width of 7</li>
+</ul>
 </td>
 </tr>
 <tr valign="TOP">
-<td style="border: none; padding: 0in;" width="128">
-<p style="font-weight: normal;">r2</p>
-</td>
-<td style="border: none; padding: 0in;" width="168">
-<p style="font-weight: normal;" align="CENTER"></p>
-</td>
-<td style="border: none; padding: 0in;" width="393">
-<p style="font-weight: normal;">this one is left aligned</p>
-</td>
+<td width="128">r2</td>
+<td width="168"></td>
+<td width="393">this one is left aligned</td>
 </tr>
 <tr valign="TOP">
-<td style="border: none; padding: 0in;" width="128">
-<p style="font-weight: normal;">r3</p>
-</td>
-<td style="border: none; padding: 0in;" width="168">
-<p style="font-weight: normal;" align="CENTER"></p>
-</td>
-<td style="border: none; padding: 0in;" width="393">
-<p style="font-weight: normal;"></p>
-</td>
+<td width="128">r3</td>
+<td width="168"></td>
+<td width="393"></td>
 </tr>
 </tbody>
 </table>
-
 
 
 ##############
@@ -177,7 +163,7 @@ def build_dict(name, patterns,
         new_tp.label = p + ' dict:' + name
         mydict[p] = new_tp
     return mydict
-    
+
 # Create a dict of begin objects
 begin_objects = [
 ['document'     ,tp()                                                  ],
@@ -257,23 +243,25 @@ custom_dict = build_dict('custom', custom_items)
 
 from cloudtb.extra import richtext
 final_subs = [
-    [r'\#'      ,'#'],
-    [r'\$'      ,"$"],
-    [r'\%'      ,"%"],
-    [r'\textasciicircum{}'  ,r'^'],
-    [r'{*}'     ,r'* '],
-    [r'{[}'     ,r'['],
-    [r'{]}'     ,r']'],
-    [r'\{'      ,r'{'],
-    [r'\}'      ,r'}'],
-    [r'\textbackslash{}'    ,'\\'],
-    [r'\textasciitilde{}'   ,r'~'],
+[r'\#'      ,'#'],
+[r'\$'      ,"$"],
+[r'\%'      ,"%"],
+[r'{*}'     ,r'* '],
+[r'{[}'     ,r'['],
+[r'{]}'     ,r']'],
+[r'\{'      ,r'{'],
+[r'\}'      ,r'}'],
+[r'<'       ,r'&lt;'],
+[r'>'       ,r'&gt;'],
+[r'\&'      ,r'&amp;'],
+[r'"'       ,r'&quot;'],
+[r'\textbackslash{}'    ,'\\'],
+[r'\textasciitilde{}'   ,r'~'],
+[r'\textasciicircum{}'  ,r'^'],
 #    [r''    ,r''],
 ]
 final_subs = [(textools.convert_to_regexp(n[0], compile = True), n[1])
                for n in final_subs]
-
-final_subs += richtext.html_replace_list
 
 ##### SUMMARY
 # So, the objects we have are:
