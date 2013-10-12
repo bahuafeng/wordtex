@@ -18,7 +18,6 @@
 #     You should have received a copy of the GNU General Public
 #     License along with wordtex.  If you can't find it,
 #     see <http://www.gnu.org/licenses/>
-#    http://opensource.org/licenses/MIT
 
 from cloudtb import publish
 
@@ -40,8 +39,8 @@ publish.YOUR_LICENSE = """
 #    
 #     You should have received a copy of the GNU General Public
 #     License along with wordtex.  If you can't find it,
-#     see <http://www.gnu.org/licenses/>
 """
+publish.LAST_LINE = '''#     see <http://www.gnu.org/licenses/>'''
 
 if __name__ == '__main__':
     publish.main()

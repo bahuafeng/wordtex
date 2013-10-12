@@ -18,7 +18,6 @@
 #     You should have received a copy of the GNU General Public
 #     License along with wordtex.  If you can't find it,
 #     see <http://www.gnu.org/licenses/>
-#    http://opensource.org/licenses/MIT
 
 import pdb
 import re
