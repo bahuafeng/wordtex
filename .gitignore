@@ -1,8 +1,6 @@
-*.pyc
-*~
-*.lyx
-*.html
-*.xhtml
-*#
+*
+!*.py
+!*.txt
+!*.tex
+!*.ui
 
-trash
