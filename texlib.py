@@ -112,7 +112,7 @@ def get_text_data(text_objects, texpart_constructor, return_first = False):
         assert(num_in >= 0)
         if txt in (None, ''):
             continue
-        elif type(txt) !:
+        elif type(txt) == TexPart:
             pass    # TexParts have been alrady processed.
         elif re_in(txt, inside):
             if num_in == 0:
@@ -398,16 +398,15 @@ class TexPart(object):
             else:
                 td.check_no_update_text()
     
-    def update_text(self):
+    def update_text(self, use_dict = None):
         '''Turns the text body into a set of str objects and TexPart objects
         Updates recursively'''
         self.is_origional_text = False
-        every_dict = self.FORMAT_MODULE.every_dict_formatting
+        if use_dict == None:
+            use_dict = self.FORMAT_MODULE.every_dict_formatting
         assert(type(self.text_data) == list)
-        for key, texpart in every_dict.iteritems():
+        for key, texpart in use_dict.iteritems():
             self.text_data = get_text_data(self.text_data, texpart)
-#            inout = get_objects_inout(self.text_data, *texpart.match_re)
-#            self.text_data = convert_inout(inout, texpart)
             assert(type(self.text_data) == list)
                 
     def insert_tex(self, index, data):

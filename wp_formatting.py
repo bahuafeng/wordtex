@@ -94,9 +94,12 @@ Note that it is indented, of a different font, and has a different background co
 #TODO: need math
 range = xrange
 
+import re
+import copy
+
 import texlib
 from cloudtb import textools
-import copy
+
 
 ## Feel Free to change these things if you want
 SECTION_NAME = ""
@@ -129,10 +132,70 @@ def subsection_num(texpart, *args, **kwargs):
                                            no_indicators= True)
 
 def hline_call(texpart, *args, **kwargs):
-    pass
+    texpart.reset_text()
+    body, = texpart.text_data
+    columns = re.split(' [&] ', body)
+    use_dict = [['tabular_column', texlib.TexPart(no_outer_pgraphs= True,
+                              add_outside = ('<td>', '</td>'))]]
+    use_dict = build_dict('hline_custom', use_dict)
+                              
 
 def tabular_call(texpart, *args, **kwargs):
-    pass
+    get_columns_raw = r'\\begin{tabular}{(.*)}'
+    get_split_columns = r'|'
+    get_column_info = r'>{\\(.*?)}p{([0-9]*)[\\\w]*}'
+    
+    raw_cols = re.match(get_columns_raw, texpart.start_txt).group(1)
+    split_cols = re.split(get_split_columns, raw_cols)
+    default_align = 'raggedright'
+    default_width = ('1', 'DEFAULT')
+    align_data, width_data = [], []
+    for col in split_cols:
+        if col == '':
+            continue
+        if col == 'c':
+            align_data.append(default_align)
+            width_data.append(default_width)
+        else:
+            cgroup = re.match(get_column_info, col).group
+            align_data.append(cgroup(1))
+            width_data.append((cgroup(2), cgroup(3)))
+    
+    align_dict = {'raggedright' : 'left',
+                  'centering'   : 'center'
+                 }
+    for i, value in enumerate(align_data):
+        align_data[i] = align_dict[value]
+    
+    perc_width_format = r'style="width: {0}%;"'
+    # we are going to do this better in the future
+    tot_width = sum([n[0] for n in width_data])
+    last_type = -1
+    for i, value in enumerate(width_data):
+        amount, ctype = value
+        if last_type != -1:
+            assert(ctype == last_type)  # doing this for now.
+        
+        amount = int(amount * 100.0 / tot_width)
+        # TODO: more dynamic possibilities for width data
+        width_data[i] = perc_width_format.format(amount)
+    
+    td_format = r'<td align="{col_align}" valign="{row_align}" {width}>'
+    
+    class hline_call:
+        def __init__(self, use_dict_list):
+            use_dict_list = []
+            self.index = 0
+        
+        def __call__(self, texpart, *args, **kwargs):
+            pass
+        
+    use_dict = [['hline'        ,texlib.TexPart(
+                    add_outside = ('<tr>','</tr>'),
+                    call_first = hline_call,
+                    no_outer_pgraphs = False)]]
+    use_dict = build_dict('hline', use_dict, r'\\{0} ', None, r'\n')
+    
 
 
 ########################
@@ -224,9 +287,6 @@ txt_attr_dict = build_dict('txt_attr', txt_attributes,
 line_items = [
 ['item'         ,tp(add_outside = ('<li>','</li>'), 
                     no_outer_pgraphs = True)], # used in itemize and enumerate
-['hline'        ,tp(add_outside = ('',''),
-                    call_first = hline_call,
-                    no_outer_pgraphs = True)], #TODO: used in tabular
 #[''     ,t(add_outside = '',''                      )],
 ]
 line_dict = build_dict('line', line_items, r'\\{0} ', None, r'\n')
