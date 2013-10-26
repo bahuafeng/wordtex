@@ -92,8 +92,6 @@ Note that it is indented, of a different font, and has a different background co
 '''
 #TODO: Need colors and tables
 #TODO: need math
-
-
 range = xrange
 
 import texlib
@@ -129,6 +127,13 @@ def subsection_num(texpart, *args, **kwargs):
         SECTION_NUMBER, SUBSECTION_NUMBER))
     texpart.text_data = texlib.reform_text(texpart.text_data, 
                                            no_indicators= True)
+
+def hline_call(texpart, *args, **kwargs):
+    pass
+
+def tabular_call(texpart, *args, **kwargs):
+    pass
+
 
 ########################
 ## Automatically creating dictionaries of regexp's
@@ -220,6 +225,7 @@ line_items = [
 ['item'         ,tp(add_outside = ('<li>','</li>'), 
                     no_outer_pgraphs = True)], # used in itemize and enumerate
 ['hline'        ,tp(add_outside = ('',''),
+                    call_first = hline_call,
                     no_outer_pgraphs = True)], #TODO: used in tabular
 #[''     ,t(add_outside = '',''                      )],
 ]
