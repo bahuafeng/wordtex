@@ -48,7 +48,7 @@ def main():
             outputfile = inputfile[:-4] + ".wp.html"
         else:
             outputfile = inputfile + ".wp.html"
-
+            
     document = texlib.process_document(inputfile)
     texlib.print_tex_tree(document)
     
