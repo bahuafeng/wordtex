@@ -132,6 +132,13 @@ def subsection_num(texpart, *args, **kwargs):
     texpart.text_data = texlib.reform_text(texpart.text_data, 
                                            no_indicators= True)
 
+def href_call(texpart, *args, **kwargs):
+    hlink = re.match(r'\\href\{(.*?)}', texpart.start_txt).group(1)
+    html_start, html_end = texpart.add_outside
+    html_start = html_start.format(hlink)
+    texpart.add_outside = html_start, html_end
+    
+#    <a href="google.com">this is a link</a>
 class tabularnewline_call(object):
     '''Class which accepts default row settings'''
     def __init__(self, textpart_list):
@@ -340,6 +347,15 @@ txt_attributes = [
 txt_attr_dict = build_dict('txt_attr', txt_attributes, 
                            r'\\{0}\{{', None, r'\}}')
 
+other_attributes = [
+# TODO: why do I have to add a space for the first character of add_outside???
+# They must be being consumed somewhere
+['href'     ,tp(add_outside = (' <a href="{0}">', '</a>'),
+                no_outer_pgraphs=True,
+                call_first = href_call)]
+]
+other_attr_dict = build_dict('other_attr', other_attributes,
+                              r'\\{0}\{{.*?}}\{{', None,r'\}}')
 
 line_items = [
 ['item'         ,tp(add_outside = ('<li>','</li>'), 
@@ -403,6 +419,6 @@ def concatenate_dicts(*dicts):
     return out
 
 every_dict_formatting = concatenate_dicts(begin_dict, if_dict, txt_attr_dict,
-                                          line_dict, custom_dict)
+                          other_attr_dict, line_dict, custom_dict)
         
     
