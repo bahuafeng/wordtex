@@ -85,6 +85,8 @@ def get_text_data(text_objects, texpart_constructor, return_first = False):
     If a starters is imbeded in an inside, it is considered inside. For instance
     /iffase /ifblog no hello to world /fi /fi -- ifblog will be inside of /iffalse
     '''
+    if 'tabular' in texpart_constructor.label:
+        pdb.set_trace()
     inside_list, starters_list, end_list = texpart_constructor.match_re
     re_in = textools.re_in
     
