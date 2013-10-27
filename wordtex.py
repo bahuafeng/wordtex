@@ -56,7 +56,7 @@ def main():
     print document.text_data
     with open(outputfile, 'w') as f:
         f.write(document.get_wp_text())
-        
+    
     print 'File output: ', outputfile
     
     

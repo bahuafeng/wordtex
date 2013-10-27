@@ -163,8 +163,8 @@ def reform_text(text_data, is_in = False, no_indicators = False):
         if type(txt) != str:
             if all_txt:
                 out.append(''.join(all_txt))
-                out.append(txt)
                 all_txt = []
+            out.append(txt)
         else:
             all_txt.append(txt)
     if all_txt:
@@ -405,11 +405,16 @@ class TexPart(object):
     def update_text(self, use_dict = None):
         '''Turns the text body into a set of str objects and TexPart objects
         Updates recursively'''
+        if self.no_update_text:
+            self.reset_text()
+            return
         self.is_origional_text = False
         if use_dict == None:
             use_dict = self.FORMAT_MODULE.every_dict_formatting
         assert(type(self.text_data) == list)
         for key, texpart in use_dict.iteritems():
+            if self.label == 'tabrow function: tabular_call' and key == 'false':
+                pdb.set_trace()
             self.text_data = get_text_data(self.text_data, texpart)
             assert(type(self.text_data) == list)
                 

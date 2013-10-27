@@ -139,11 +139,10 @@ class tabularnewline_call(object):
         self.index = 0
     
     def __call__(self, texpart, *args, **kwargs):
-#        pdb.set_trace()
         body, = texpart.text_data
         
-        col_st, col_end = '\\tabcolstart ', ' \\tabcolend\n'
         columns = re.split(' [&] ', body)
+        col_st, col_end = '\\tabcolstart ', ' \\tabcolend\n'
         new_body = [col_st + n + col_end for n in columns]
         texpart.text_data = [''.join(new_body)]
         
@@ -152,6 +151,7 @@ class tabularnewline_call(object):
         texpart.no_update_text = False        
         texpart.text_data = texlib.get_text_data(texpart.text_data,
                                                   TPart)      
+        pdb.set_trace()
         texpart.update_text()
         self.index += 1
 
@@ -216,7 +216,7 @@ def tabular_call(texpart, *args, **kwargs):
 #    how to reach into the depths of this api. Note that this function is
 #    a "call_first" function (see "begin_objects" below), and that it
 #    recieved non-updated text
-    
+    pdb.set_trace()
     # TODO: for some reason the init_text isn't being processed correctly
     #  getting {c|c} in both start and body
     textpart_list = _tabular_get_texpart_list(texpart.start_txt)
@@ -238,11 +238,11 @@ def tabular_call(texpart, *args, **kwargs):
                 add_outside = ('<tr>','</tr>'),
                 call_first = tabularnewline_call(textpart_list),
                 no_update_text = True,
-                no_outer_pgraphs = False)
+                no_outer_pgraphs = True)
     
     
     tpart.update_match_re(([r'\\tabrowstart '], [], [r' \\tabrowend\n']))
-    tpart.label = 'tabrow' + ' function:' + 'tabular_call'
+    tpart.label = 'tabrow' + ' function: ' + 'tabular_call'
     use_dict = {'tabularnewline' : tpart}
     
     # The "no_update_text" flag must be set to False so that the below can
