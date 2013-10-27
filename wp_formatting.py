@@ -93,6 +93,7 @@ Note that it is indented, of a different font, and has a different background co
 #TODO: Need colors and tables
 #TODO: need math
 range = xrange
+import pdb
 
 import re
 import copy
@@ -131,34 +132,39 @@ def subsection_num(texpart, *args, **kwargs):
     texpart.text_data = texlib.reform_text(texpart.text_data, 
                                            no_indicators= True)
 
-class hline_call(object):
+class tabularnewline_call(object):
     '''Class which accepts default row settings'''
-    def __init__(self, textpart_list, columns):
+    def __init__(self, textpart_list):
         self.textpart_list = textpart_list
         self.index = 0
     
     def __call__(self, texpart, *args, **kwargs):
+#        pdb.set_trace()
         body, = texpart.text_data
         
+        col_st, col_end = '\\tabcolstart ', ' \\tabcolend\n'
         columns = re.split(' [&] ', body)
-        TPart = self.textpart_list[self.index % len(self.textpart_list)]
+        new_body = [col_st + n + col_end for n in columns]
+        texpart.text_data = [''.join(new_body)]
         
-        text_data = []
-        for col in columns:
-            text_data.append(texlib.get_text_data(texpart.text_data,
-                                                  TPart))
-        texpart.text_data = text_data
+        TPart = self.textpart_list[self.index % len(self.textpart_list)]
+        TPart.update_match_re(([r'\\tabcolstart '], [], [r' \\tabcolend\n']))
+        texpart.no_update_text = False        
+        texpart.text_data = texlib.get_text_data(texpart.text_data,
+                                                  TPart)      
+        texpart.update_text()
         self.index += 1
 
 def _tabular_get_texpart_list(start_txt):
     get_columns_raw = r'\\begin{tabular}{(.*)}'
-    get_split_columns = r'|'
-    get_column_info = r'>{\\(.*?)}p{([0-9]*)[\\\w]*}'
+    get_split_columns = r'\|'
+    # TODO: What do 'p' and 'm' stand for?
+    get_column_info = r'>{\\(.*?)}[pm]{([0-9]*)([\\\w]*)}'    
     
     raw_cols = re.match(get_columns_raw, start_txt).group(1)
     split_cols = re.split(get_split_columns, raw_cols)
     default_align = 'raggedright'
-    default_width = ('1', 'DEFAULT')
+    default_width = (1, 'DEFAULT')
     align_data, width_data = [], []
     for col in split_cols:
         if col == '':
@@ -169,7 +175,7 @@ def _tabular_get_texpart_list(start_txt):
         else:
             cgroup = re.match(get_column_info, col).group
             align_data.append(cgroup(1))
-            width_data.append((cgroup(2), cgroup(3)))
+            width_data.append((int(cgroup(2)), cgroup(3)))
     
     align_dict = {'raggedright' : 'left',
                   'centering'   : 'center'
@@ -192,31 +198,59 @@ def _tabular_get_texpart_list(start_txt):
     
     td_format = r'<td align="{col_align}" valign="{row_align}" {width}>'
     textpart_list = []
-    for i, align in align_data:
-        textpart_list.append( texlib.TexPart(
+    for i, align in enumerate(align_data):
+        Tpart = texlib.TexPart(
                 add_outside = (td_format.format(col_align = align,
                                             row_align = 'top',
                                             width = width_data[i]), 
                                 '</td>'),
                 no_outer_pgraphs = True,
             )
-        )
+#        Tpart.update_match_re([])
+        textpart_list.append(Tpart)
     return textpart_list
 
 def tabular_call(texpart, *args, **kwargs):
+    '''Handles formating tables.'''
+#    For developers: gives some good insight into
+#    how to reach into the depths of this api. Note that this function is
+#    a "call_first" function (see "begin_objects" below), and that it
+#    recieved non-updated text
+    
+    # TODO: for some reason the init_text isn't being processed correctly
+    #  getting {c|c} in both start and body
     textpart_list = _tabular_get_texpart_list(texpart.start_txt)
     
-    use_dict = [['hline', texlib.TexPart(
-                    add_outside = ('<tr>','</tr>'),
-                    call_first = hline_call(textpart_list),
-                    no_update_text = True,
-                    no_outer_pgraphs = False)]]
+    # the \tabularnewline syntax has to be changed as it is not compatitble
+    #  with the convert_inout function in texlib
+    body, = texpart.text_data
+    # Just remove \hline for now
+    body = re.sub(r'\\hline ?\n?', '', body)
+    tab_st, tab_end = '\\tabrowstart ', ' \\tabrowend\n'
+    split = re.split(r' \\tabularnewline\n', body)
+    assert(split[-1] == '' or split[-1].find("\\hline ") == 0)
+    del split[-1]
+    new_body = [tab_st + n + tab_end for n in split]
+    texpart.text_data = [''.join(new_body)]
     
-    use_dict = build_dict('hline', use_dict, r'\\{0} ', None, r'\n')
+    # constructing custom dictionary for use in update_text
+    tpart = texlib.TexPart(
+                add_outside = ('<tr>','</tr>'),
+                call_first = tabularnewline_call(textpart_list),
+                no_update_text = True,
+                no_outer_pgraphs = False)
     
+    
+    tpart.update_match_re(([r'\\tabrowstart '], [], [r' \\tabrowend\n']))
+    tpart.label = 'tabrow' + ' function:' + 'tabular_call'
+    use_dict = {'tabularnewline' : tpart}
+    
+    # The "no_update_text" flag must be set to False so that the below can
+    #  work fully
+    # a custom dictionary must be created and fed to update_text
+    # finally the text must be updated normally
+    texpart.no_update_text = False 
     texpart.update_text(use_dict = use_dict)
-    
-    
     
 
 ########################
@@ -270,7 +304,8 @@ begin_objects = [
 ['equation'     ,tp(add_outside = ('','' ) )], #TODO: need basic equation
 ]
 
-begin_dict = build_dict('begin', begin_objects, r'\\begin\{{{0}}}(\{{.*?}})? *?', None,
+begin_dict = build_dict('begin', begin_objects, 
+                           r'\\begin\{{{0}}}(\{{.*}})? *?', None,
                            r'\\end\{{{0}}} *?')
 
 # Create a dict for ifs

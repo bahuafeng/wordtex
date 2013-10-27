@@ -323,6 +323,10 @@ class TexPart(object):
         
         self.no_update_text = no_update_text
         
+        if call_first != None and not hasattr(call_first, '__iter__'):
+            call_first = (call_first,)
+        if call_last != None and not hasattr(call_last, '__iter__'):
+            call_last = (call_last,)
         self.call_first = call_first
         self.call_last = call_last
         
