@@ -131,18 +131,17 @@ def subsection_num(texpart, *args, **kwargs):
     texpart.text_data = texlib.reform_text(texpart.text_data, 
                                            no_indicators= True)
 
-class hline_call:
+class hline_call(object):
+    '''Class which accepts default row settings'''
     def __init__(self, textpart_list, columns):
         self.textpart_list = textpart_list
-        self.columns = columns
         self.index = 0
     
     def __call__(self, texpart, *args, **kwargs):
-        texpart.reset_text()
         body, = texpart.text_data
         
         columns = re.split(' [&] ', body)
-        TPart = self.textpart_list[self.index % self.columns]
+        TPart = self.textpart_list[self.index % len(self.textpart_list)]
         
         text_data = []
         for col in columns:
@@ -151,12 +150,12 @@ class hline_call:
         texpart.text_data = text_data
         self.index += 1
 
-def tabular_call(texpart, *args, **kwargs):
+def _tabular_get_texpart_list(start_txt):
     get_columns_raw = r'\\begin{tabular}{(.*)}'
     get_split_columns = r'|'
     get_column_info = r'>{\\(.*?)}p{([0-9]*)[\\\w]*}'
     
-    raw_cols = re.match(get_columns_raw, texpart.start_txt).group(1)
+    raw_cols = re.match(get_columns_raw, start_txt).group(1)
     split_cols = re.split(get_split_columns, raw_cols)
     default_align = 'raggedright'
     default_width = ('1', 'DEFAULT')
@@ -192,36 +191,32 @@ def tabular_call(texpart, *args, **kwargs):
         width_data[i] = perc_width_format.format(amount)
     
     td_format = r'<td align="{col_align}" valign="{row_align}" {width}>'
-    
-#    use_dict_list = []
     textpart_list = []
     for i, align in align_data:
-        wd = width_data[i]
         textpart_list.append( texlib.TexPart(
                 add_outside = (td_format.format(col_align = align,
                                             row_align = 'top',
-                                            width = wd), 
+                                            width = width_data[i]), 
                                 '</td>'),
                 no_outer_pgraphs = True,
             )
         )
-#        udict = [
-#            ['tabular_column', texlib.TexPart(
-#                add_outside = (td_format.format(col_align = align,
-#                                            row_align = 'top',
-#                                            width = wd), 
-#                                '</td>'),
-#                no_outer_pgraphs = True,
-#            )]
-#            ]
-#        udict = build_dict('hline_custom', udict)    
-#        use_dict_list.append(udict)
+    return textpart_list
+
+def tabular_call(texpart, *args, **kwargs):
+    textpart_list = _tabular_get_texpart_list(texpart.start_txt)
+    
     use_dict = [['hline', texlib.TexPart(
                     add_outside = ('<tr>','</tr>'),
-                    call_first = hline_call(textpart_list, len(width_data)),
+                    call_first = hline_call(textpart_list)),
                     no_update_text = True,
                     no_outer_pgraphs = False)]]
+    
     use_dict = build_dict('hline', use_dict, r'\\{0} ', None, r'\n')
+    
+    texpart.update_text(use_dict = use_dict)
+    
+    
     
 
 ########################
