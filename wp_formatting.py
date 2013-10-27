@@ -151,7 +151,7 @@ class tabularnewline_call(object):
         texpart.no_update_text = False        
         texpart.text_data = texlib.get_text_data(texpart.text_data,
                                                   TPart)      
-        pdb.set_trace()
+#        pdb.set_trace()
         texpart.update_text()
         self.index += 1
 
@@ -216,7 +216,6 @@ def tabular_call(texpart, *args, **kwargs):
 #    how to reach into the depths of this api. Note that this function is
 #    a "call_first" function (see "begin_objects" below), and that it
 #    recieved non-updated text
-    pdb.set_trace()
     # TODO: for some reason the init_text isn't being processed correctly
     #  getting {c|c} in both start and body
     textpart_list = _tabular_get_texpart_list(texpart.start_txt)

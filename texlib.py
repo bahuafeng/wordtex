@@ -412,11 +412,14 @@ class TexPart(object):
         if use_dict == None:
             use_dict = self.FORMAT_MODULE.every_dict_formatting
         assert(type(self.text_data) == list)
+        if not self.text_data:
+            return
         for key, texpart in use_dict.iteritems():
-            if self.label == 'tabrow function: tabular_call' and key == 'false':
-                pdb.set_trace()
+#            if self.label == 'tabrow function: tabular_call' and key == 'false':
+#                pdb.set_trace()
             self.text_data = get_text_data(self.text_data, texpart)
             assert(type(self.text_data) == list)
+            assert(self.text_data)
                 
     def insert_tex(self, index, data):
         return self.text_data.insert(index, data)
