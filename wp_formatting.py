@@ -208,7 +208,7 @@ def tabular_call(texpart, *args, **kwargs):
     
     use_dict = [['hline', texlib.TexPart(
                     add_outside = ('<tr>','</tr>'),
-                    call_first = hline_call(textpart_list)),
+                    call_first = hline_call(textpart_list),
                     no_update_text = True,
                     no_outer_pgraphs = False)]]
     
@@ -256,7 +256,8 @@ def build_dict(name, patterns,
 # Create a dict of begin objects
 begin_objects = [
 ['document'     ,tp()                                                  ],
-['tabular'      ,tp(add_outside = ('<table>','</table>'),
+['tabular'      ,tp(call_first = tabular_call,
+                    add_outside = ('<table>','</table>'),
                     no_outer_pgraphs = True,
                     no_update_text = True)], 
 ['lstlisting'   ,tp(add_outside = ('<ul><pre>','</pre></ul>'),
@@ -309,7 +310,6 @@ txt_attr_dict = build_dict('txt_attr', txt_attributes,
 line_items = [
 ['item'         ,tp(add_outside = ('<li>','</li>'), 
                     no_outer_pgraphs = True)], # used in itemize and enumerate
-#[''     ,t(add_outside = '',''                      )],
 ]
 line_dict = build_dict('line', line_items, r'\\{0} ', None, r'\n')
 
@@ -318,9 +318,9 @@ line_dict = build_dict('line', line_items, r'\\{0} ', None, r'\n')
 ## Custom items - #TODO NOT YET TESTED
 # if you REALLY need to do your own custom regular expression matching,
 # you can do so here. NOTE that you do NOT need to put parenthesis around
-# the patter, as this will be done automatically.
+# the pattern, as this will be done automatically.
 custom_items = [
-#[['custom regexp insisde'], ['custom regexp outside'], ['custom regexp end']], tp()]
+#[['regexp insisde'], ['regexp outside'], ['regexp end']], tp()]
 ]
 
 custom_dict = build_dict('custom', custom_items)
