@@ -345,7 +345,7 @@ class TexPart(object):
         self.cmp_inside, self.cmp_starters, self.cmp_end = (
             [[re.compile(n) for n in c] for c in self.match_re])
         
-    def init_text(self, text_block):
+    def init_text(self, text_block, use_dict = None):
         '''
         This function initilizes the text data and calls update_text       
         '''
@@ -354,7 +354,7 @@ class TexPart(object):
         self._init_text_block = self.start_txt, self.text_data[:], self.end_txt
         global watched
         watched.append((self.label, self))
-        self.update_text()
+        self.update_text(use_dict=use_dict)
         
     def get_original_text(self, no_start_stop = False):
         '''Returns the original format of the string, recursively going to all

@@ -131,14 +131,25 @@ def subsection_num(texpart, *args, **kwargs):
     texpart.text_data = texlib.reform_text(texpart.text_data, 
                                            no_indicators= True)
 
-def hline_call(texpart, *args, **kwargs):
-    texpart.reset_text()
-    body, = texpart.text_data
-    columns = re.split(' [&] ', body)
-    use_dict = [['tabular_column', texlib.TexPart(no_outer_pgraphs= True,
-                              add_outside = ('<td>', '</td>'))]]
-    use_dict = build_dict('hline_custom', use_dict)
-                              
+class hline_call:
+    def __init__(self, textpart_list, columns):
+        self.textpart_list = textpart_list
+        self.columns = columns
+        self.index = 0
+    
+    def __call__(self, texpart, *args, **kwargs):
+        texpart.reset_text()
+        body, = texpart.text_data
+        
+        columns = re.split(' [&] ', body)
+        TPart = self.textpart_list[self.index % self.columns]
+        
+        text_data = []
+        for col in columns:
+            text_data.append(texlib.get_text_data(texpart.text_data,
+                                                  TPart))
+        texpart.text_data = text_data
+        self.index += 1
 
 def tabular_call(texpart, *args, **kwargs):
     get_columns_raw = r'\\begin{tabular}{(.*)}'
@@ -182,21 +193,36 @@ def tabular_call(texpart, *args, **kwargs):
     
     td_format = r'<td align="{col_align}" valign="{row_align}" {width}>'
     
-    class hline_call:
-        def __init__(self, use_dict_list):
-            use_dict_list = []
-            self.index = 0
-        
-        def __call__(self, texpart, *args, **kwargs):
-            pass
-        
-    use_dict = [['hline'        ,texlib.TexPart(
+#    use_dict_list = []
+    textpart_list = []
+    for i, align in align_data:
+        wd = width_data[i]
+        textpart_list.append( texlib.TexPart(
+                add_outside = (td_format.format(col_align = align,
+                                            row_align = 'top',
+                                            width = wd), 
+                                '</td>'),
+                no_outer_pgraphs = True,
+            )
+        )
+#        udict = [
+#            ['tabular_column', texlib.TexPart(
+#                add_outside = (td_format.format(col_align = align,
+#                                            row_align = 'top',
+#                                            width = wd), 
+#                                '</td>'),
+#                no_outer_pgraphs = True,
+#            )]
+#            ]
+#        udict = build_dict('hline_custom', udict)    
+#        use_dict_list.append(udict)
+    use_dict = [['hline', texlib.TexPart(
                     add_outside = ('<tr>','</tr>'),
-                    call_first = hline_call,
+                    call_first = hline_call(textpart_list, len(width_data)),
+                    no_update_text = True,
                     no_outer_pgraphs = False)]]
     use_dict = build_dict('hline', use_dict, r'\\{0} ', None, r'\n')
     
-
 
 ########################
 ## Automatically creating dictionaries of regexp's
@@ -235,8 +261,9 @@ def build_dict(name, patterns,
 # Create a dict of begin objects
 begin_objects = [
 ['document'     ,tp()                                                  ],
-['tabular'      ,tp(add_outside = ('TABLE_START','TABLE_END'),
-                    no_outer_pgraphs = True)], #TODO: Placeholder
+['tabular'      ,tp(add_outside = ('<table>','</table>'),
+                    no_outer_pgraphs = True,
+                    no_update_text = True)], 
 ['lstlisting'   ,tp(add_outside = ('<ul><pre>','</pre></ul>'),
                     no_update_text = True, no_std_format = True,
                     no_outer_pgraphs=True)],
