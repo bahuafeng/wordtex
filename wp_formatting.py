@@ -148,24 +148,20 @@ class list_call(object):
         an end point (particularily the last one). Have to create a start and stop 
         so it can be handled by process_inout'''
         body, = texpart.text_data
-        
-        researched = textools.re_search(r'\item (.*)', body)
+#        pdb.set_trace()
+        researched = textools.re_search(r'\\item (.*)', body)
         new_body = []
-        startitem = r'\\startitem '
-            
         for text in researched:
             if type(text) in (str, unicode):
                 new_body.append(text)
             else:
-                if self.enumerate:
-                    startitem += r'\textbf{{{0:<2}: }}'.format(self.count)
                 self.count += 1
-                new_body.append(startitem + text.group(1) + r'\enditem ')
+                new_body.append(r'\startitem ' + text.group(1) + r'\enditem ')
         texpart.text_data = [''.join(new_body)]
         
         line_items = [
         ['item'         ,tp(add_outside = ('<li>','</li>'), 
-                            no_outer_pgraphs = True)], # used in itemize and enumerate
+                            no_outer_pgraphs = True)],
         ]
         use_dict = build_dict('list_call', line_items, r'\\start{0} ', None, 
                               r'\\end{0}')
