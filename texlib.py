@@ -516,7 +516,7 @@ class TexPart(object):
             if not self.no_std_format:
                 tp = tp.strip()
             tp = all_subs_or_re.sub(subfun, tp)
-            
+            tp = re.sub('\n', ' ', tp)
             self.text_data[i] = tp
         
         def __repr__(self):
