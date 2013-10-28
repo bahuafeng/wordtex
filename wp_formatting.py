@@ -137,8 +137,42 @@ def href_call(texpart, *args, **kwargs):
     html_start, html_end = texpart.add_outside
     html_start = html_start.format(hlink)
     texpart.add_outside = html_start, html_end
+
+class list_call(object):
+    def __init__(self, enumerate = False):
+        self.enumerate = enumerate
+        self.count = 1
     
-#    <a href="google.com">this is a link</a>
+    def __call__(self, texpart, *args, **kwargs):
+        '''Have to do a call here only because the "item"s may or may not have
+        an end point (particularily the last one). Have to create a start and stop 
+        so it can be handled by process_inout'''
+        body, = texpart.text_data
+        
+        researched = textools.re_search(r'\item (.*)', body)
+        new_body = []
+        startitem = r'\\startitem '
+            
+        for text in researched:
+            if type(text) in (str, unicode):
+                new_body.append(text)
+            else:
+                if self.enumerate:
+                    startitem += r'\textbf{{{0:<2}: }}'.format(self.count)
+                self.count += 1
+                new_body.append(startitem + text.group(1) + r'\enditem ')
+        texpart.text_data = [''.join(new_body)]
+        
+        line_items = [
+        ['item'         ,tp(add_outside = ('<li>','</li>'), 
+                            no_outer_pgraphs = True)], # used in itemize and enumerate
+        ]
+        use_dict = build_dict('list_call', line_items, r'\\start{0} ', None, 
+                              r'\\end{0}')
+        texpart.no_update_text = False
+        texpart.update_text(use_dict = use_dict)
+        texpart.update_text()
+    
 class tabularnewline_call(object):
     '''Class which accepts default row settings'''
     def __init__(self, textpart_list):
@@ -163,7 +197,7 @@ class tabularnewline_call(object):
         self.index += 1
 
 def _tabular_get_texpart_list(start_txt):
-    get_columns_raw = r'\\begin{tabular}{(.*)}'
+    get_columns_raw = r'\\begin{tabular\*?}{(.*)}'
     get_split_columns = r'\|'
     # TODO: What do 'p' and 'm' stand for?
     get_column_info = r'>{\\(.*?)}[pm]{([0-9]*)([\\\w]*)}'    
@@ -296,7 +330,7 @@ def build_dict(name, patterns,
 # Create a dict of begin objects
 begin_objects = [
 ['document'     ,tp()                                                  ],
-['tabular'      ,tp(call_first = tabular_call,
+['tabular\*?'      ,tp(call_first = tabular_call,
                     add_outside = ('<table>','</table>'),
                     no_outer_pgraphs = True,
                     no_update_text = True)], 
@@ -304,9 +338,13 @@ begin_objects = [
                     no_update_text = True, no_std_format = True,
                     no_outer_pgraphs=True)],
 ['itemize'      ,tp(add_outside = ('<ul>', '</ul>'),
-                    no_outer_pgraphs = True)],
+                    no_outer_pgraphs = True,
+                    no_update_text = True,
+                    call_first = list_call(),)],
 ['enumerate'    ,tp(add_outside = ('<ol>','</ol>'),
-                    no_outer_pgraphs = True)], #TODO: Placeholder
+                    no_outer_pgraphs = True,
+                    no_update_text = True,
+                    call_first = list_call(enumerate = True))],
 ['equation'     ,tp(add_outside = ('','' ) )], #TODO: need basic equation
 ]
 
@@ -356,13 +394,6 @@ other_attributes = [
 ]
 other_attr_dict = build_dict('other_attr', other_attributes,
                               r'\\{0}\{{.*?}}\{{', None,r'\}}')
-
-line_items = [
-['item'         ,tp(add_outside = ('<li>','</li>'), 
-                    no_outer_pgraphs = True)], # used in itemize and enumerate
-]
-line_dict = build_dict('line', line_items, r'\\{0} ', None, r'\n')
-
 
 #################
 ## Custom items - #TODO NOT YET TESTED
@@ -419,6 +450,6 @@ def concatenate_dicts(*dicts):
     return out
 
 every_dict_formatting = concatenate_dicts(begin_dict, if_dict, txt_attr_dict,
-                          other_attr_dict, line_dict, custom_dict)
+                          other_attr_dict, custom_dict)
         
     

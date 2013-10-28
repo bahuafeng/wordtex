@@ -117,12 +117,12 @@ nothing else here &  & \tabularnewline
 
 and more complex table:
 
-\begin{tabular*}{10cm}{@{\extracolsep{\fill}}|>{\raggedright}p{3cm}||>{\raggedright}p{5cm}||>{\raggedright}p{2cm}|}
+\begin{tabular}{|>{\raggedright}p{3cm}||>{\raggedright}p{5cm}||>{\raggedright}p{2cm}|}
 \hline 
 r1c1 width 3 & r1c2 width 5 & r1c3 width 2\tabularnewline
 \hline 
 \hline 
-These automatically wrap really well & Also, lists:
+These automatically wrap really well & \textbf{Also, lists:}
 \begin{itemize}
 \item This is a simple list
 \item I can write some things that are much longer.
@@ -138,5 +138,5 @@ These automatically wrap really well & Also, lists:
 \hline 
  &  & \tabularnewline
 \hline 
-\end{tabular*}
+\end{tabular}
 \end{document}
