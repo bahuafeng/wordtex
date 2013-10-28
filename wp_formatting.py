@@ -196,7 +196,7 @@ class tabularnewline_call(object):
         texpart.update_text()
         self.index += 1
 
-def _tabular_get_texpart_list(start_txt):
+def _tabular_get_column_list(start_txt):
     get_columns_raw = r'\\begin{tabular\*?}{(.*)}'
     get_split_columns = r'\|'
     # TODO: What do 'p' and 'm' stand for?
@@ -257,17 +257,15 @@ def tabular_call(texpart, *args, **kwargs):
 #    how to reach into the depths of this api. Note that this function is
 #    a "call_first" function (see "begin_objects" below), and that it
 #    recieved non-updated text
-    # TODO: for some reason the init_text isn't being processed correctly
-    #  getting {c|c} in both start and body
-    textpart_list = _tabular_get_texpart_list(texpart.start_txt)
-    
+    textpart_list = _tabular_get_column_list(texpart.start_txt)
+#    pdb.set_trace()
     # the \tabularnewline syntax has to be changed as it is not compatitble
     #  with the convert_inout function in texlib
     body, = texpart.text_data
     # Just remove \hline for now
     body = re.sub(r'\\hline ?\n?', '', body)
     tab_st, tab_end = '\\tabrowstart ', ' \\tabrowend\n'
-    split = re.split(r' \\tabularnewline\n', body)
+    split = body.split('\\tabularnewline\n')
     assert(split[-1] == '' or split[-1].find("\\hline ") == 0)
     del split[-1]
     new_body = [tab_st + n + tab_end for n in split]
