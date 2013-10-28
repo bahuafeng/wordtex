@@ -51,7 +51,6 @@ def main():
             
     document = texlib.process_document(inputfile)
     texlib.print_tex_tree(document)
-    
 #    document.check_no_update_text()
     document.format()
     import bs4

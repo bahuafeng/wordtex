@@ -214,6 +214,10 @@ def convert_inout(inout, texpart_constructor, return_first = False):
     
     def get_processed(was_in, processing):
         if was_in > 0:  # object
+            assert(processing[-1] > 0)
+            if processing[-1] != 3 and (
+                    texpart_constructor.no_end_valid == True):
+                processing.append((3, ''))
             converted = convert_processed(processing[0],
                     processing[1:-1], processing[-1])
             return [converted]

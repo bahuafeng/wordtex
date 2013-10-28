@@ -5,7 +5,6 @@
 \usepackage[latin9]{inputenc}
 \usepackage{listings}
 \usepackage{array}
-\usepackage{multirow}
 
 \makeatletter
 
@@ -101,31 +100,43 @@ yep, I guess done
 
 \section{Ok, now tables.}
 
-\begin{tabular}{c|c}
-\hline  col1 & 2 \tabularnewline
-\hline  col 3 & 4 \tabularnewline
-\end{tabular}
-
-\begin{tabular}{|>{\raggedright}m{4cm}||>{\raggedright}m{10cm}|}
+\begin{tabular}{|c|c|c|}
 \hline 
-This column is 4 cm GIBBERISH GIBBERISH GIBBERISH GIBBERISH  & This column is 10 GIBBERISH GIBBERISH GIBBERISH GIBBERISH GIBBERISH
-GIBBERISH GIBBERISH GIBBERISH GIBBERISH GIBBERISH GIBBERISH GIBBERISH
-GIBBERISH GIBBERISH GIBBERISH GIBBERISH GIBBERISH GIBBERISH GIBBERISH
-GIBBERISH GIBBERISH GIBBERISH \tabularnewline
+Simple table & Doing nothing & to it\tabularnewline
 \hline 
 \hline 
-\multirow{1}{4cm}{GIBBERISH GIBBERISH GIBBERISH GIBBERISH GIBBERISH } & \multirow{1}{10cm}{}\tabularnewline
+first col, second row & col 2 & col 3\tabularnewline
 \hline 
+nothing else here &  & \tabularnewline
 \hline 
-GIBBERISH GIBBERISH GIBBERISH GIBBERISH GIBBERISH  & \tabularnewline
+ &  & \tabularnewline
 \hline 
-\hline 
-GIBBERISH GIBBERISH & spots\tabularnewline
-\hline 
-\hline 
-I'm not quite sure how it is formatting both of them to be multiline... & \tabularnewline
+ &  & \tabularnewline
 \hline 
 \end{tabular}
 
+and more complex table:
 
+\begin{tabular*}{10cm}{@{\extracolsep{\fill}}|>{\raggedright}p{3cm}||>{\raggedright}p{5cm}||>{\raggedright}p{2cm}|}
+\hline 
+r1c1 width 3 & r1c2 width 5 & r1c3 width 2\tabularnewline
+\hline 
+\hline 
+These automatically wrap really well & Also, lists:
+\begin{itemize}
+\item This is a simple list
+\item I can write some things that are much longer.
+\item It looks really good.\end{itemize}
+ & nothing else here at the moment.\tabularnewline
+\hline 
+\hline 
+ &  & \tabularnewline
+\hline 
+\hline 
+ &  & \tabularnewline
+\hline 
+\hline 
+ &  & \tabularnewline
+\hline 
+\end{tabular*}
 \end{document}
