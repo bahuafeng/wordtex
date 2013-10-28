@@ -85,8 +85,6 @@ def get_text_data(text_objects, texpart_constructor, return_first = False):
     If a starters is imbeded in an inside, it is considered inside. For instance
     /iffase /ifblog no hello to world /fi /fi -- ifblog will be inside of /iffalse
     '''
-#    if 'tabular' in texpart_constructor.label:
-#        pdb.set_trace()
     inside_list, starters_list, end_list = texpart_constructor.match_re
     re_in = textools.re_in
     
@@ -99,7 +97,8 @@ def get_text_data(text_objects, texpart_constructor, return_first = False):
         if type(tobj) != str:
             splited.append(tobj)
         else:
-            splited.extend(match_cmp.split(tobj))
+            researched = textools.re_search(match_cmp, tobj)
+            splited.extend(textools.get_iter_str_researched(researched))
         
     inside = [re.compile(m) for m in inside_list]
     starter = [re.compile(m) for m in starters_list]
@@ -204,6 +203,8 @@ def convert_inout(inout, texpart_constructor, return_first = False):
         return [inout[0][1]]
     
     def convert_processed(start, body, end):
+#        if 'tabular' in texpart_constructor.label:
+#            pdb.set_trace()
         assert(start[0] == 2 and end[0] == 3)
         body = reform_text(body, is_in = True)
         tp = copy.copy( texpart_constructor)

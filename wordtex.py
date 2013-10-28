@@ -34,7 +34,7 @@ def main():
     texlib.TexPart.FORMAT_MODULE = wp_formatting
     argv = sys.argv
     inputfile = "tex_docs/simple.tex"
-    inputfile = "/home/user/Documents/Cloudform Design/Website/Blog/Projects In the works.tex"
+#    inputfile = "/home/user/Documents/Cloudform Design/Website/Blog/Projects In the works.tex"
 
     if len(argv) > 1:
         inputfile = argv[1]
@@ -54,10 +54,11 @@ def main():
     
 #    document.check_no_update_text()
     document.format()
-    
-    print document.text_data
+    import bs4
+    html_text = bs4.BeautifulSoup(document.get_wp_text()).prettify()
+    print html_text
     with open(outputfile, 'w') as f:
-        f.write(document.get_wp_text())
+        f.write(html_text)
     
     print 'File output: ', outputfile
     
