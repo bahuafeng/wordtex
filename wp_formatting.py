@@ -82,6 +82,17 @@ TD P { margin-bottom: 0in; }P { margin-bottom: 0.08in; }A:link {  }
 </table>
 
 
+<table style="border: 1px solid #cccccc;" width="689" cellspacing="0" cellpadding="2"><colgroup> <col style="border: 1px solid #cccccc;" width="123" /> <col style="border: 1px solid #cccccc;" width="164" /> <col style="border: 1px solid #cccccc;" width="388" /> </colgroup>
+<tbody>
+<tr style="border: 1px solid #cccccc;" valign="TOP">
+<td width="123">r1 c1 with width 5. These columns wrap rather nicely</td>
+<td width="164">
+<p align="CENTER">r1c2</p>
+<p align="CENTER">center alligned</p>
+</td>
+<td style="border: 1px solid #cccccc;" width="388">• r1c3
+
+
 ##############
 ## Changing font type to courier new (should work)
 # I just need to add the following around the block
@@ -173,30 +184,27 @@ class tabularnewline_call(object):
     '''Class which accepts default row settings'''
     def __init__(self, textpart_list):
         self.textpart_list = textpart_list
-        self.index = 0
     
     def __call__(self, texpart, *args, **kwargs):
         body, = texpart.text_data
         
         columns = re.split(' [&] ', body)
         col_st, col_end = '\\tabcolstart ', ' \\tabcolend\n'
-        new_body = [col_st + n + col_end for n in columns]
-        texpart.text_data = [''.join(new_body)]
-        
-        TPart = self.textpart_list[self.index % len(self.textpart_list)]
-        TPart.update_match_re(([r'\\tabcolstart '], [], [r' \\tabcolend\n']))
+        columns = [col_st + n + col_end for n in columns]
+        Tparts = []
+        for i, tpart in enumerate(self.textpart_list):
+            tpart.update_match_re(([r'\\tabcolstart '], [], 
+                                   [r' \\tabcolend\n']))
+            Tparts.extend(texlib.get_text_data([columns[i]], tpart))
         texpart.no_update_text = False        
-        texpart.text_data = texlib.get_text_data(texpart.text_data,
-                                                  TPart)      
-#        pdb.set_trace()
+        texpart.text_data = Tparts
         texpart.update_text()
-        self.index += 1
 
 def _tabular_get_column_list(start_txt):
     get_columns_raw = r'\\begin{tabular\*?}{(.*)}'
     get_split_columns = r'\|'
     # TODO: What do 'p' and 'm' stand for?
-    get_column_info = r'>{\\(.*?)}[pm]{([0-9]*)([\\\w]*)}'    
+    get_column_info = r'>{\\(.*?)}[pm]{([0-9.]*)(\\?[\w]*)}'    
     
     raw_cols = re.match(get_columns_raw, start_txt).group(1)
     split_cols = re.split(get_split_columns, raw_cols)
@@ -212,15 +220,16 @@ def _tabular_get_column_list(start_txt):
         else:
             cgroup = re.match(get_column_info, col).group
             align_data.append(cgroup(1))
-            width_data.append((int(cgroup(2)), cgroup(3)))
-    
+            width_data.append((float(cgroup(2)), cgroup(3)))
+#    pdb.set_trace()
     align_dict = {'raggedright' : 'left',
                   'centering'   : 'center'
                  }
     for i, value in enumerate(align_data):
         align_data[i] = align_dict[value]
     
-    perc_width_format = r'style="width: {0}%;"'
+    perc_width_format = ('style="width: {0}%; border: 1px solid #cccccc; '
+                        'padding:0px 5px;"')
     # we are going to do this better in the future
     tot_width = sum([n[0] for n in width_data])
     last_type = -1
