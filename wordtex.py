@@ -34,7 +34,8 @@ def main():
     texlib.TexPart.FORMAT_MODULE = wp_formatting
     argv = sys.argv
     inputfile = "tex_docs/simple.tex"
-#    inputfile = "/home/user/Documents/Cloudform Design/Website/Blog/Projects In the works.tex"
+    inputfile = "/home/user/Documents/Cloudform Design/Website/Blog/Projects In the works.tex"
+    inputfile = "/home/user/Documents/Cloudform Design/Website/Personal/Resume.tex"
 
     if len(argv) > 1:
         inputfile = argv[1]

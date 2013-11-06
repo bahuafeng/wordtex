@@ -110,6 +110,9 @@ def get_text_data(text_objects, texpart_constructor, return_first = False):
     #TODO: It has to match arbitrary if statements. I think this should be
     # pretty easy
     for txt in splited:
+#        if type(txt) == str and 'Garrett' in txt and 'section' in texpart_constructor.label:
+#            print texpart_constructor.label
+#            pdb.set_trace()
         assert(num_in >= 0)
         if txt in (None, ''):
             continue
@@ -521,11 +524,11 @@ class TexPart(object):
             tp = re.sub('\n', ' ', tp)
             self.text_data[i] = tp
         
-        def __repr__(self):
-            return self.label
-        
-        def __str__(self):
-            return self.label
+    def __repr__(self):
+        return 'TPart(' + self.label + ')'
+    
+    def __str__(self):
+        return self.label
 
 if __name__ == '__main__':
     import wordtex

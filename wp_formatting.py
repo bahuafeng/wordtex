@@ -20,77 +20,6 @@
 #     see <http://www.gnu.org/licenses/>
 
 '''
-OK, tables
-Note: raggedright means left justified. centering means centered, etc.
-It looks like everything is really set up in the very first line. Everyting 
-else is just standard processing.
-
-For the non-lists you have to watch out for the enter key -- it looks like it
-is using standard spacing! See the first line "center aligned" row
-
-\begin{tabular}{|>{\raggedright}p{5cm}||>{\centering}p{3cm}||>{\raggedright}p{7cm}|}
-\hline 
-r1 c1 with width 5. These columns wrap rather nicely & r1c 
-
-center aligned & \begin{itemize}
-\item r1c3
-\item look! I'm a list!
-\item For lists, it is a good idea to left justify, like this column!
-\item I have a width of 7\end{itemize}
-\tabularnewline
-\hline 
-\hline 
-r2 &  & this one is now also aligned left\tabularnewline
-\hline 
-\hline 
-r3 &  & \tabularnewline
-\hline 
-\end{tabular}
-
-### HTML TABLE FROM WORDPRESS
-<style type="text/css"><!--
-TD P { margin-bottom: 0in; }P { margin-bottom: 0.08in; }A:link {  }
---></style>
-<table width="689" cellspacing="0" cellpadding="0"><colgroup> <col width="128" /> <col width="168" /> <col width="393" /> </colgroup>
-<tbody>
-<tr valign="TOP">
-<td width="128">r1 c1 with width 5. These columns wrap rather nicely</td>
-<td width="168">
-<p align="CENTER">r1c2</p>
-<p align="CENTER">center alligned</p>
-</td>
-<td width="393">
-<ul>
-	<li>r1c3</li>
-	<li>look! I'm a list!</li>
-	<li>For lists, it is a good idea to left justify, like this column!</li>
-	<li>I have a width of 7</li>
-</ul>
-</td>
-</tr>
-<tr valign="TOP">
-<td width="128">r2</td>
-<td width="168"></td>
-<td width="393">this one is left aligned</td>
-</tr>
-<tr valign="TOP">
-<td width="128">r3</td>
-<td width="168"></td>
-<td width="393"></td>
-</tr>
-</tbody>
-</table>
-
-
-<table style="border: 1px solid #cccccc;" width="689" cellspacing="0" cellpadding="2"><colgroup> <col style="border: 1px solid #cccccc;" width="123" /> <col style="border: 1px solid #cccccc;" width="164" /> <col style="border: 1px solid #cccccc;" width="388" /> </colgroup>
-<tbody>
-<tr style="border: 1px solid #cccccc;" valign="TOP">
-<td width="123">r1 c1 with width 5. These columns wrap rather nicely</td>
-<td width="164">
-<p align="CENTER">r1c2</p>
-<p align="CENTER">center alligned</p>
-</td>
-<td style="border: 1px solid #cccccc;" width="388">• r1c3
 
 
 ##############
@@ -158,25 +87,39 @@ class list_call(object):
         '''Have to do a call here only because the "item"s may or may not have
         an end point (particularily the last one). Have to create a start and stop 
         so it can be handled by process_inout'''
-        body, = texpart.text_data
-#        pdb.set_trace()
-        researched = textools.re_search(r'\\item (.*)', body)
+        
+        # have to handle itemize and enumerate first for nested lists
+        use_dict = {'itemize': begin_dict['itemize'],
+                    'enumerate': begin_dict['enumerate']}
+        texpart.no_update_text = False
+        texpart.update_text(use_dict)
+        regexp = re.compile(r'\\item ([\w\W]*?)(?=(\\item|$))')
+        researched = []
+        for n in texpart.text_data:
+            if type(n) in (str, unicode):
+#                pdb.set_trace()
+                researched.extend(textools.re_search(regexp, n))
+            else:
+                researched.append(n)
         new_body = []
         for text in researched:
-            if type(text) in (str, unicode):
+            if type(text) in (str, unicode, texlib.TexPart):
                 new_body.append(text)
             else:
                 self.count += 1
+                assert( r'\end{itemize}' not in text.group(1))
                 new_body.append(r'\startitem ' + text.group(1) + r'\enditem ')
-        texpart.text_data = [''.join(new_body)]
+#                need = r'\end{itemize}'
+#                if need in text.text:
+#                    new_body.append(text.text[text.text.find(need):])
+        texpart.text_data = texlib.reform_text(new_body, no_indicators = True)
         
         line_items = [
         ['item'         ,tp(add_outside = ('<li>','</li>'), 
-                            no_outer_pgraphs = True)],
+                        no_outer_pgraphs = True)],
         ]
         use_dict = build_dict('list_call', line_items, r'\\start{0} ', None, 
                               r'\\end{0}')
-        texpart.no_update_text = False
         texpart.update_text(use_dict = use_dict)
         texpart.update_text()
     
@@ -314,7 +257,10 @@ def build_dict(name, patterns,
             if inside_template == None:
                 inside = []
             else:
-                inside = [inside_template.format(p)]
+                if type(inside_template) in (str, unicode):
+                    inside = [inside_template.format(p)]
+                else:
+                    inside = inside
             if start_template == None: 
                 start = []
             else:
@@ -386,7 +332,7 @@ txt_attributes = [
 ['subsection*' ,tp(add_outside = ('<h2><b>','</b></h2>'))], 
 ]
 txt_attr_dict = build_dict('txt_attr', txt_attributes, 
-                           r'\\{0}\{{', None, r'\}}')
+                           r'\\{0}\{{', r'\{{', r'\}}')
 
 other_attributes = [
 # TODO: why do I have to add a space for the first character of add_outside???
@@ -430,6 +376,7 @@ final_subs = [
 [r'\textbackslash{}'    ,'\\'],
 [r'\textasciitilde{}'   ,r'~'],
 [r'\textasciicircum{}'  ,r'^'],
+[r'\textendash{}'       ,r'-']
 #    [r''    ,r''],
 ]
 final_subs = [(textools.convert_to_regexp(n[0], compile = True), n[1])
@@ -454,5 +401,9 @@ def concatenate_dicts(*dicts):
 
 every_dict_formatting = concatenate_dicts(begin_dict, if_dict, txt_attr_dict,
                           other_attr_dict, custom_dict)
-        
+
+if __name__ == '__main__':
+    import wordtex
+    from cloudtb import dbe
+    wordtex.main()
     
