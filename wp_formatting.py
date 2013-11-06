@@ -130,7 +130,8 @@ class tabularnewline_call(object):
     
     def __call__(self, texpart, *args, **kwargs):
         body, = texpart.text_data
-        
+#        if 'Bachelor' in body:
+#            pdb.set_trace()
         columns = re.split(' [&] ', body)
         col_st, col_end = '\\tabcolstart ', ' \\tabcolend\n'
         columns = [col_st + n + col_end for n in columns]
@@ -195,7 +196,9 @@ def _tabular_get_column_list(start_txt):
                                 '</td>'),
                 no_outer_pgraphs = True,
             )
+            
 #        Tpart.update_match_re([])
+        Tpart.label = 'tabular_column_custom dict:tabular_call'
         textpart_list.append(Tpart)
     return textpart_list
 

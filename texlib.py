@@ -498,6 +498,8 @@ class TexPart(object):
             - makes sure all spaces are only single spaces
             - goes through the final subs and converts them
         '''
+        if self.label == 'tabular_column_custom dict:tabular_call':
+            pdb.set_trace
         fmat = self.FORMAT_MODULE
         one_space = (' {2,}', ' ')
         paragraphs = ('\n{2,}', ''.join(fmat.PARAGRAPH))
@@ -518,14 +520,15 @@ class TexPart(object):
             if type(tp) != str:
                 continue
             # strip all dangling new-lines and spaces
-            if not self.no_std_format:
-                tp = tp.strip()
             tp = all_subs_or_re.sub(subfun, tp)
             tp = re.sub('\n', ' ', tp)
+            if not self.no_std_format:
+                tp = tp.strip()
             self.text_data[i] = tp
+            
         
     def __repr__(self):
-        return 'TPart(' + self.label + ')'
+        return 'TPart(' + str(self.label) + ')'
     
     def __str__(self):
         return self.label
