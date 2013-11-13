@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #     LICENSE: The GNU Public License v3 or Greater
 #
-#     WordTeX (wordtex) v0.2.21
+#     WordTeX (wordtex) v0.2.23
 #     Copyright 2013 Garrett Berg
 #     
 #     Loosly based on LaTeX2WP version 0.6.2, Luca Trevisan Copyright 2009
@@ -51,17 +51,17 @@ def main():
             outputfile = inputfile + ".wp.html"
             
     document = texlib.process_document(inputfile)
-    texlib.print_tex_tree(document)
+#    texlib.print_tex_tree(document)
 #    document.check_no_update_text()
     document.format()
-    import bs4
-    html_text = bs4.BeautifulSoup(document.get_wp_text()).prettify()
-    print html_text
+    try:
+        import bs4
+        html_text = bs4.BeautifulSoup(document.get_wp_text()).prettify()
+    except ImportError:
+        html_text = document.get_wp_text()
     with open(outputfile, 'w') as f:
         f.write(html_text)
-    
-    print 'File output: ', outputfile
-    
+    print 'Done, file at :', outputfile
     
 if __name__ == '__main__':
     main()

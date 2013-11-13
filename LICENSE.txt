@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #     LICENSE: The GNU Public License v3 or Greater
 #
-#     WordTeX (wordtex) v0.2.21
+#     WordTeX (wordtex) v0.2.23
 #     Copyright 2013 Garrett Berg
 #     
 #     Loosly based on LaTeX2WP version 0.6.2, Luca Trevisan Copyright 2009
