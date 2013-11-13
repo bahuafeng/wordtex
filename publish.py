@@ -1,8 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-#                       The GNU Public License v3 or Greater
+#     LICENSE: The GNU Public License v3 or Greater
 #
-#     WordTeX (wordtex) v0.2
+#     WordTeX (wordtex) v0.2.21
 #     Copyright 2013 Garrett Berg
 #     
 #     Loosly based on LaTeX2WP version 0.6.2, Luca Trevisan Copyright 2009
@@ -18,11 +18,11 @@
 #     You should have received a copy of the GNU General Public
 #     License along with wordtex.  If you can't find it,
 #     see <http://www.gnu.org/licenses/>
-
+import pdb
 from cloudtb import publish
 
-VERSION = '0.2.1'
-publish.YOUR_LICENSE = """
+VERSION = '0.2.21'
+publish.YOUR_LICENSE = """  
 #     LICENSE: The GNU Public License v3 or Greater
 #
 #     WordTeX (wordtex) v{version}
@@ -43,8 +43,10 @@ publish.YOUR_LICENSE = """
 """.format(version = VERSION)
 publish.LAST_LINE = '''#     see <http://www.gnu.org/licenses/>'''
 
+#publish.CLOUDTB_VERSION_URL = (
+#        'https://github.com/cloudformdesign/cloudtb/archive/v0.1.1.zip')
 publish.CLOUDTB_VERSION_URL = (
-        'https://github.com/cloudformdesign/cloudtb/archive/v0.1.1.zip')
+        '/home/user/Projects/CloudformDesign/PythonCloudform/cloudtb')
 
 if __name__ == '__main__':
     from cloudtb import dbe
