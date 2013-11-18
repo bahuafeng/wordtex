@@ -1,0 +1,47 @@
+%% LyX 2.0.2 created this file.  For more info, see http://www.lyx.org/.
+%% Do not edit unless you really know what you are doing.
+\documentclass[english]{article}
+\usepackage[T1]{fontenc}
+\usepackage[latin9]{inputenc}
+\usepackage{listings}
+\setlength{\parskip}{\smallskipamount}
+\setlength{\parindent}{0pt}
+\usepackage{babel}
+\begin{document}
+
+\title{\LaTeX{} For Code Documentation User Guide}
+
+
+\author{Garrett Berg, cloudformdesign.com}
+
+\maketitle
+
+\section{Use Lyx}
+
+Lyx is a simple, easy to use software. In this section I will explain
+how to set it up, how to set the keybindings to be more sane (for
+someone used to LibreOffice at least), and how to set it up to be
+able to export your code documentation correctly.
+
+
+\section{Exporting Code}
+
+If you installed my configuration settings, then you don't need to
+do anything for this. If you haven't though, you can set it up by
+going to Tools -> Preferences -> File Handling -> File Formats. Create
+a new one named ``Codedoc''. Make the short name whatever you want
+and the extension ``html.'' Also change the viewer to your webbrowser
+(mine is ``firefox'')
+
+Now go to \textbf{Converters }and immediately press the drop-box on
+the bottom left. Change it to \textbf{\LaTeX{} (plain)} and the ``To
+format'' change to your newly created \textbf{Codedoc}. Finally,
+in the converted box, copy paste the below:
+
+\begin{lstlisting}
+NEED THE PYTHON COMMAND LINE
+\end{lstlisting}
+
+
+
+\end{document}
