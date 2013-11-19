@@ -19,6 +19,9 @@
 #     License along with wordtex.  If you can't find it,
 #     see <http://www.gnu.org/licenses/>
 
+'''python -tt /home/user/Projects/CloudformDesign/PythonCloudform/wordtex/\
+wordtex.py $$i $$o --lyx $$p $$r'''
+
 import pdb
 import sys, os
 sys.path.insert(1, '..')
@@ -38,6 +41,7 @@ def main():
     import publish
     import pdb
     
+    print sys.argv
     texlib.TexPart.FORMAT_MODULE = wp_formatting
 
     parser = argparse.ArgumentParser(description = "Convert .tex file to "
@@ -59,8 +63,6 @@ def main():
             args.file_output = args.file_input[:-4] + ".wp.html"
         else:
             args.file_output = args.file_input + ".wp.html"
-'''python -tt /home/user/Projects/CloudformDesign/PythonCloudform/wordtex/\
-wordtex.py $$i $$o --lyx $$p $$r'''
     if args.lyx:
         # output file needs directory
         # lyx variable has original input file directory

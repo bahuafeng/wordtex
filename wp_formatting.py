@@ -29,6 +29,8 @@
 # STILL NEED TO CHECK IN WP
 <p style="padding-left: 30px;"><span style="font-family: comic sans ms,sans-serif; background-color: #c0c0c0; color: #000000;">This is an example of the kind of output I want for my code
 Note that it is indented, of a different font, and has a different background color.</span>
+
+\includegraphics[width=5cm]{\lyxdot \lyxdot /\lyxdot \lyxdot /\lyxdot \lyxdot /\lyxdot \lyxdot /Pictures/PhotoMe}
 '''
 #TODO: Need colors and tables
 #TODO: need math
@@ -332,7 +334,7 @@ txt_attributes = [
 ['section\*'    ,tp(add_outside = ('<h1><b>','</b></h1>'),)],
 ['subsection'   ,tp(add_outside = ('<h2><b>','</b></h2>'),
     call_first = [subsection_num])], 
-['subsection*' ,tp(add_outside = ('<h2><b>','</b></h2>'))], 
+['subsection\*' ,tp(add_outside = ('<h2><b>','</b></h2>'))], 
 ]
 txt_attr_dict = build_dict('txt_attr', txt_attributes, 
                            r'\\{0}\{{', r'\{{', r'\}}')
@@ -367,6 +369,7 @@ final_subs = [
 [r'\#'      ,'#'],
 [r'\$'      ,"$"],
 [r'\%'      ,"%"],
+[r'\_'      ,'_'],
 [r'{*}'     ,r'* '],
 [r'{[}'     ,r'['],
 [r'{]}'     ,r']'],

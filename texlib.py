@@ -520,7 +520,8 @@ class TexPart(object):
                 continue
             # strip all dangling new-lines and spaces
             tp = all_subs_or_re.sub(subfun, tp)
-            tp = re.sub('\n', ' ', tp)
+            if not self.no_one_spaces:
+                tp = re.sub('\n', ' ', tp)
             if not self.no_std_format:
                 tp = tp.strip()
             self.text_data[i] = tp
